@@ -176,7 +176,7 @@ button:focus-visible{outline:3px solid var(--violet);outline-offset:2px}
 .boardframe{padding:4px;border-radius:20px;border:3px solid transparent;
   background:linear-gradient(180deg,#7A2CF0,#4A12A8) padding-box,var(--rainbow) border-box;
   box-shadow:0 5px 0 rgba(90,20,140,.45),0 0 22px rgba(255,70,200,.55)}
-.board{--cell:44px;position:relative;width:calc(var(--cell)*8);height:calc(var(--cell)*8);touch-action:none;border-radius:14px;overflow:hidden;
+.board{--cell:44px;position:relative;width:calc(var(--cell)*8);height:calc(var(--cell)*6);touch-action:none;border-radius:14px;overflow:hidden;
   background:repeating-conic-gradient(rgba(255,255,255,.09) 0 25%,rgba(255,255,255,.02) 0 50%) 0 0/calc(var(--cell)*2) calc(var(--cell)*2),
     linear-gradient(180deg,#3B0F86,#22074F);box-shadow:inset 0 2px 10px rgba(0,0,0,.55)}
 .tile{position:absolute;left:0;top:0;width:var(--cell);height:var(--cell);padding:1px;cursor:pointer;
@@ -642,15 +642,15 @@ button:focus-visible{outline:3px solid var(--violet);outline-offset:2px}
 .pill.all{background:linear-gradient(#4BEA95,#12B866)}
 .pill.part{background:linear-gradient(#FFE27A,#FFB21F);color:#7A4200}
 .saylayer{position:absolute;inset:0;pointer-events:none;z-index:35;overflow:hidden}
-.bubble{position:absolute;max-width:172px;width:max-content;padding:5px 10px 6px;border-radius:14px;background:#fff;color:var(--ink);
-  font-weight:900;font-size:14px;line-height:1.18;text-align:center;--bb:#FF7AC8;
+.bubble{position:absolute;max-width:214px;width:max-content;padding:6px 11px 7px;border-radius:15px;background:#fff;color:var(--ink);
+  font-weight:900;font-size:17px;line-height:1.15;text-align:center;--bb:#FF7AC8;
   box-shadow:0 0 0 2.5px var(--bb),0 4px 0 rgba(90,20,110,.22),0 0 12px rgba(255,255,255,.7);
   transform:translate(-50%,-100%) scale(.5);transform-origin:50% 100%;opacity:0;transition:transform .2s cubic-bezier(.3,1.6,.5,1),opacity .15s}
 .bubble.show{transform:translate(-50%,-100%) scale(1);opacity:1}
 .bubble::after{content:"";position:absolute;left:50%;bottom:-8px;margin-left:-7px;border:7px solid transparent;border-top-color:var(--bb);border-bottom:0}
 .bubble.b-donald{--bb:#FFA51F}.bubble.b-rostik{--bb:#22BF4A}.bubble.b-alisa{--bb:#8A3CFF}
 .hostsay{position:absolute;left:50%;bottom:78px;z-index:38;pointer-events:none;max-width:86%;width:max-content;text-align:center;
-  padding:7px 16px 8px;border-radius:18px;color:#fff;font-weight:900;font-size:16px;line-height:1.15;text-shadow:0 1px 0 rgba(120,0,60,.35);
+  padding:8px 18px 9px;border-radius:20px;color:#fff;font-weight:900;font-size:18px;line-height:1.15;text-shadow:0 1px 0 rgba(120,0,60,.35);
   background:linear-gradient(90deg,#FF6FC0,#FF2E93);box-shadow:inset 0 0 0 2.5px rgba(255,255,255,.6),0 4px 0 #A00A4E,0 0 16px rgba(255,46,147,.55);
   transform:translateX(-50%) scale(.5);opacity:0;transition:transform .2s cubic-bezier(.3,1.6,.5,1),opacity .15s}
 .hostsay.show{transform:translateX(-50%) scale(1);opacity:1}
@@ -970,7 +970,8 @@ const CONFIG = {
   eat: { duration: 2, sniff: 1 },
   // Реплики (этап 5): облачко держится ms; между репликами одного говорящего — gapMs;
   // «фоновые» реплики (голод, доска) — не чаще раза в lowCooldown; голодные напоминают о себе раз в askEvery игровых секунд
-  say: { ms: 2600, shortMs: 1400, gapMs: 400, lowCooldown: 9000, askEvery: 22, hostMs: 2400 },                  // поедание и отказ (реальные секунды)
+  say: { ms: 2600, shortMs: 1400, gapMs: 400, lowCooldown: 9000, askEvery: 22, hostMs: 2400,
+         readMin: 4000, readMax: 7500, readBase: 2200, readPerChar: 70, shortMin: 2600, shortMax: 4000 },                  // поедание и отказ (реальные секунды)
   bowl: { maxItems: 3, chainBelow: 90, minLeft: .05 },  // в цепочке — у кого сытость ниже 90; меньше 5% порции — не остаток
   // Пакетики-вкусняшки (этап 3в). Действие щепотки (+30 к пригодности) и каприза (−20) включится на этапе 4
   treats: {
@@ -1052,10 +1053,10 @@ const CONFIG = {
   saveKey: 'nakormi-save-v1',                      // сохранение в localStorage: только утро дня
   // Доска «три в ряд». Наборы фишек по фазам — стартовое предложение из ТЗ
   board: {
-    size: 8,
-    maxHeightShare: .46,      // доска занимает не больше этой доли высоты экрана
+    cols: 8, rows: 6,         // этап 10.2: доска 8 в ширину × 6 в высоту — высота уходит кухне
+    maxHeightShare: .345,     // доска занимает не больше этой доли высоты экрана (было .46 при 8 рядах)
     // этап 7.2 «Раскладка»: кухня важнее доски
-    kitchenMin: 257,          // кухня не ниже, px (как на эталоне 390×844: питомцы не мельчают)
+    kitchenMin: 300,          // кухня не ниже, px (этап 10.2: было 257 — питомцы крупнее)
     cellMin: 36,              // доска уступает место кухне до этой клетки, px
     kitchenSoft: 200,         // дальше уступает кухня — до этой высоты, px
     cellFloor: 26,            // аварийный минимум клетки на совсем коротких экранах
@@ -2899,7 +2900,7 @@ function say(who, key, vars = {}, prio = 1, ms = CONFIG.say.ms) {
   if (prio === 0) b.lastLow = now;
   SND.said(who, key);                                // этап 9: «мяу» / «тяв» питомца
   // хозяйка при открытом холодильнике — в подзаголовке окна
-  if (who === 'host' && S.fridge.open) { SND.voice(text); S.fridge.host = { text, until: now + CONFIG.say.hostMs }; S.fridge.psig = ''; return text; }
+  if (who === 'host' && S.fridge.open) { SND.voice(text); S.fridge.host = { text, until: now + readMs(text, CONFIG.say.hostMs) }; S.fridge.psig = ''; return text; }
   if (b.until > now) {
     if (prio > b.prio) showBubble(who, text, prio, ms);                 // важное перебивает фон
     else if (prio > 0 && b.q.length < 2) b.q.push([text, prio, ms]);    // остальное — в очередь
@@ -2907,6 +2908,12 @@ function say(who, key, vars = {}, prio = 1, ms = CONFIG.say.ms) {
   }
   showBubble(who, text, prio, ms);
   return text;
+}
+// Этап 10.2: сколько держать фразу, чтобы успели прочитать — по длине текста.
+// Короткие реакции на доску (shortMs) — 2,6–4 с, остальные — 4–7,5 с
+function readMs(text, ms) {
+  const c = CONFIG.say, len = (text || '').length, t = c.readBase + c.readPerChar * len;
+  return ms != null && ms <= c.shortMs ? clamp(t, c.shortMin, c.shortMax) : Math.max(ms || 0, clamp(t, c.readMin, c.readMax));
 }
 function showBubble(who, text, prio, ms) {
   const b = BUB[who];
@@ -2917,7 +2924,7 @@ function showBubble(who, text, prio, ms) {
   b.el.textContent = text;
   if (who === 'host') SND.voice(text);                // этап 9: голос хозяйки, если есть запись
   b.el.classList.remove('show'); void b.el.offsetWidth; b.el.classList.add('show');
-  b.until = performance.now() + (who === 'host' ? CONFIG.say.hostMs : ms); b.prio = prio;
+  b.until = performance.now() + readMs(text, who === 'host' ? CONFIG.say.hostMs : ms); b.prio = prio;
   if (who !== 'host') layoutBubbles(performance.now());
 }
 // Раскладка облачков: над головой, не на шкалах сытости и не за краями; соседние раздвигаются
@@ -2960,7 +2967,7 @@ function clearBubbles() {
    ===================================================================== */
 const boardEl = $('#board');
 const B = { grid: [], cell: 44, lock: false, sel: null, drag: null, idleAt: 0, hinted: null };
-const BN = CONFIG.board.size;
+const BW = CONFIG.board.cols, BH = CONFIG.board.rows;   // этап 10.2: столбцы и ряды (было 8×8)
 const wait = ms => new Promise(r => setTimeout(r, ms));
 const boardSet = () => CONFIG.board.sets[phaseAt(dayT()).id];
 // Вес выпадения: крупы и овощи чаще белка — основа для миски есть всегда, за мясо приходится бороться
@@ -2982,11 +2989,11 @@ const canPlay = () => S.running && !S.over && !S.paused && !S.fridge.open;
 // Все линии длиной 3+ по строкам и столбцам: [{ pid, cells: [[r, c], ...] }]
 function findRuns(P) {
   const runs = [];
-  const scan = (get) => {
-    for (let a = 0; a < BN; a++) {
+  const scan = (get, NA, NB) => {
+    for (let a = 0; a < NA; a++) {
       let start = 0;
-      for (let b = 1; b <= BN; b++) {
-        const cur = b < BN ? get(a, b) : null, prev = get(a, start);
+      for (let b = 1; b <= NB; b++) {
+        const cur = b < NB ? get(a, b) : null, prev = get(a, start);
         if (cur !== null && cur === prev && !isSpecial(cur)) continue;
         if (prev !== null && !isSpecial(prev) && b - start >= 3) runs.push({ pid: prev, cells: Array.from({ length: b - start }, (_, i) => get.cell(a, start + i)) });
         start = b;
@@ -2995,7 +3002,7 @@ function findRuns(P) {
   };
   const byRow = (r, c) => P[r][c]; byRow.cell = (r, c) => [r, c];
   const byCol = (c, r) => P[r][c]; byCol.cell = (c, r) => [r, c];
-  scan(byRow); scan(byCol);
+  scan(byRow, BH, BW); scan(byCol, BW, BH);
   return runs;
 }
 // Есть ли линия 3+ через клетку (r, c)
@@ -3003,19 +3010,19 @@ function lineAt(P, r, c) {
   const v = P[r][c]; if (v === null || isSpecial(v)) return false;
   let h = 1, w = 1;
   for (let i = c - 1; i >= 0 && P[r][i] === v; i--) h++;
-  for (let i = c + 1; i < BN && P[r][i] === v; i++) h++;
+  for (let i = c + 1; i < BW && P[r][i] === v; i++) h++;
   for (let i = r - 1; i >= 0 && P[i][c] === v; i--) w++;
-  for (let i = r + 1; i < BN && P[i][c] === v; i++) w++;
+  for (let i = r + 1; i < BH && P[i][c] === v; i++) w++;
   return h >= 3 || w >= 3;
 }
 // Первый возможный ход [[r, c], [r2, c2]] или null (порядок клеток случайный — подсказки разнообразнее)
 function findMove(P) {
-  const order = [...Array(BN * BN).keys()].sort(() => Math.random() - .5);
+  const order = [...Array(BW * BH).keys()].sort(() => Math.random() - .5);
   for (const k of order) {
-    const r = (k / BN) | 0, c = k % BN;
+    const r = (k / BW) | 0, c = k % BW;
     for (const [dr, dc] of [[0, 1], [1, 0]]) {
       const r2 = r + dr, c2 = c + dc;
-      if (r2 >= BN || c2 >= BN || P[r][c] === P[r2][c2] || P[r][c] === 'puddle' || P[r2][c2] === 'puddle') continue;
+      if (r2 >= BH || c2 >= BW || P[r][c] === P[r2][c2] || P[r][c] === 'puddle' || P[r2][c2] === 'puddle') continue;
       if (dr === 1 && P[r][c] === 'jar') return [[r, c], [r2, c2]];   // банку вниз можно всегда
       [P[r][c], P[r2][c2]] = [P[r2][c2], P[r][c]];
       const ok = lineAt(P, r, c) || lineAt(P, r2, c2);
@@ -3029,9 +3036,9 @@ function findMove(P) {
 function genPids() {
   for (;;) {
     const P = [];
-    for (let r = 0; r < BN; r++) {
+    for (let r = 0; r < BH; r++) {
       P.push([]);
-      for (let c = 0; c < BN; c++) {
+      for (let c = 0; c < BW; c++) {
         let v;
         do v = randPid();
         while ((c >= 2 && P[r][c - 1] === v && P[r][c - 2] === v) || (r >= 2 && P[r - 1][c] === v && P[r - 2][c] === v));
@@ -3086,7 +3093,7 @@ function makeTile(pid) {
 const tileXY = (r, c) => `translate(${c * B.cell}px,${r * B.cell}px)`;
 // Расставить фишки по их клеткам в сетке; ms — длительность движения
 function syncPos(ms = 0, cls = '') {
-  for (let r = 0; r < BN; r++) for (let c = 0; c < BN; c++) {
+  for (let r = 0; r < BH; r++) for (let c = 0; c < BW; c++) {
     const t = B.grid[r][c]; if (!t) continue;
     t.r = r; t.c = c;
     t.el.style.transitionDuration = ms + 'ms';
@@ -3119,16 +3126,16 @@ function boardMetricsPass() {
   // всё, что не кухня и не сама доска: панели, карточки, рамка доски
   const chrome = h($('.daywrap')) + h($('#chips')) + h($('.dock')) + (h($('#boardWrap')) - h(boardEl));
   const flex = a.height - chrome;                         // делят кухня и доска
-  const byW = Math.floor((a.width - 22) / BN);
-  const byH = Math.floor(a.height * cb.maxHeightShare / BN);
-  const fit = Math.floor((flex - cb.kitchenMin) / BN);    // клетка, при которой кухне хватает места
+  const byW = Math.floor((a.width - 22) / BW);
+  const byH = Math.floor(a.height * cb.maxHeightShare / BH);
+  const fit = Math.floor((flex - cb.kitchenMin) / BH);    // клетка, при которой кухне хватает места
   let cell = Math.min(byW, byH, fit), mode = 'обычная';
   if (fit < Math.min(byW, byH)) mode = 'доска уступает';
   if (cell < cb.cellMin) {
     cell = Math.min(byW, cb.cellMin); mode = 'кухня уступает';   // доска 36, кухня от 257 до 200
-    if (flex - cell * BN < cb.kitchenSoft) {              // аварийный режим: сжимаем всё вместе
-      const share = cb.cellMin * BN / (cb.cellMin * BN + cb.kitchenSoft);
-      cell = Math.max(cb.cellFloor, Math.min(byW, Math.floor(flex * share / BN)));
+    if (flex - cell * BH < cb.kitchenSoft) {              // аварийный режим: сжимаем всё вместе
+      const share = cb.cellMin * BH / (cb.cellMin * BH + cb.kitchenSoft);
+      cell = Math.max(cb.cellFloor, Math.min(byW, Math.floor(flex * share / BH)));
       mode = 'сжато всё';
     }
   }
@@ -3194,26 +3201,26 @@ async function resolveBoard() {
     if (!runs.length && !jar) return;
     if (runs.length) SND.fx('match', Math.max(...runs.map(r => r.cells.length)), chain);   // этап 9: волна каскада выше на полтона
     const kill = new Set();
-    for (const run of runs) { for (const [r, c] of run.cells) kill.add(r * BN + c); rewardRun(run); }
+    for (const run of runs) { for (const [r, c] of run.cells) kill.add(r * BW + c); rewardRun(run); }
     // лужа вытирается совпадением в соседней клетке
     const wiped = new Set();
     for (const k of kill) {
-      const r = (k / BN) | 0, c = k % BN;
+      const r = (k / BW) | 0, c = k % BW;
       for (const [dr, dc] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
         const r2 = r + dr, c2 = c + dc;
-        if (r2 >= 0 && r2 < BN && c2 >= 0 && c2 < BN && B.grid[r2][c2] && B.grid[r2][c2].pid === 'puddle') wiped.add(r2 * BN + c2);
+        if (r2 >= 0 && r2 < BH && c2 >= 0 && c2 < BW && B.grid[r2][c2] && B.grid[r2][c2].pid === 'puddle') wiped.add(r2 * BW + c2);
       }
     }
-    for (const k of wiped) { kill.add(k); floatText(cellXY((k / BN) | 0, k % BN), 'Вытерто!', 'good small'); }
-    if (jar) { kill.add(jar[0] * BN + jar[1]); fishFed(jar); }
-    if (chain === 2) floatText(cellXY(3.5, 3.5), 'Каскад!', 'combo burst');
-    for (const k of kill) B.grid[(k / BN) | 0][k % BN].el.classList.add('pop');
+    for (const k of wiped) { kill.add(k); floatText(cellXY((k / BW) | 0, k % BW), 'Вытерто!', 'good small'); }
+    if (jar) { kill.add(jar[0] * BW + jar[1]); fishFed(jar); }
+    if (chain === 2) floatText(cellXY((BH - 1) / 2, (BW - 1) / 2), 'Каскад!', 'combo burst');
+    for (const k of kill) B.grid[(k / BW) | 0][k % BW].el.classList.add('pop');
     await wait(popMs);
-    for (const k of kill) { const r = (k / BN) | 0, c = k % BN; B.grid[r][c].el.remove(); B.grid[r][c] = null; }
+    for (const k of kill) { const r = (k / BW) | 0, c = k % BW; B.grid[r][c].el.remove(); B.grid[r][c] = null; }
     // падение по столбцам и новые фишки сверху (стартуют над доской)
-    for (let c = 0; c < BN; c++) {
-      let w = BN - 1;
-      for (let r = BN - 1; r >= 0; r--) {
+    for (let c = 0; c < BW; c++) {
+      let w = BH - 1;
+      for (let r = BH - 1; r >= 0; r--) {
         const t = B.grid[r][c]; if (!t) continue;
         if (r !== w) { B.grid[w][c] = t; B.grid[r][c] = null; }
         w--;
@@ -3337,7 +3344,7 @@ async function shuffleBoard(msg = 'Ходов нет — перемешиваю!
   toast(msg);
   // этап 7: лужи и банка остаются на своих местах, перемешиваются только продукты
   const pos = [], flat = [];
-  for (let r = 0; r < BN; r++) for (let c = 0; c < BN; c++) if (!isSpecial(B.grid[r][c].pid)) { pos.push([r, c]); flat.push(B.grid[r][c]); }
+  for (let r = 0; r < BH; r++) for (let c = 0; c < BW; c++) if (!isSpecial(B.grid[r][c].pid)) { pos.push([r, c]); flat.push(B.grid[r][c]); }
   let ok = false;
   for (let i = 0; i < 200 && !ok; i++) {
     flat.sort(() => Math.random() - .5);
@@ -3370,12 +3377,12 @@ function boardTick(now) {
   const hd = S.tut && !S.tut.done.swap ? CONFIG.tut.hintDelay : CONFIG.board.hintDelay;   // этап 8: на шаге «поменяй» пара качается сразу
   if (B.lock || B.hinted || !canPlay() || now - B.idleAt < hd) return;
   const jr = S.fish && S.fish.st === 'on' ? jarPos() : null;   // рыбки ждут — подсказка про банку
-  const m = jr && jr[0] < BN - 1 && B.grid[jr[0] + 1][jr[1]].pid !== 'puddle' ? [jr, [jr[0] + 1, jr[1]]] : findMove(pids()); if (!m) return;
+  const m = jr && jr[0] < BH - 1 && B.grid[jr[0] + 1][jr[1]].pid !== 'puddle' ? [jr, [jr[0] + 1, jr[1]]] : findMove(pids()); if (!m) return;
   B.hinted = m.map(([r, c]) => B.grid[r][c]);
   for (const t of B.hinted) t.el.classList.add('hint');
 }
 const tileAt = e => { const el = e.target.closest('.tile'); if (!el) return null;
-  for (let r = 0; r < BN; r++) for (let c = 0; c < BN; c++) if (B.grid[r][c] && B.grid[r][c].el === el) return [r, c];
+  for (let r = 0; r < BH; r++) for (let c = 0; c < BW; c++) if (B.grid[r][c] && B.grid[r][c].el === el) return [r, c];
   return null; };
 boardEl.addEventListener('pointerdown', e => {
   touchIdle();
@@ -3391,7 +3398,7 @@ boardEl.addEventListener('pointermove', e => {
   if (Math.max(Math.abs(dx), Math.abs(dy)) < B.cell * .35) return;
   d.moved = true;
   const to = Math.abs(dx) > Math.abs(dy) ? [d.rc[0], d.rc[1] + Math.sign(dx)] : [d.rc[0] + Math.sign(dy), d.rc[1]];
-  if (to[0] >= 0 && to[0] < BN && to[1] >= 0 && to[1] < BN) trySwap(d.rc, to);
+  if (to[0] >= 0 && to[0] < BH && to[1] >= 0 && to[1] < BW) trySwap(d.rc, to);
 });
 const endDrag = () => {
   const d = B.drag; B.drag = null;
@@ -3616,8 +3623,8 @@ function nudgeTile([r, c]) {
   const t = B.grid[r] && B.grid[r][c]; if (!t) return;
   t.el.classList.remove('nudge'); void t.el.offsetWidth; t.el.classList.add('nudge');
 }
-const jarPos = () => { for (let r = 0; r < BN; r++) for (let c = 0; c < BN; c++) if (B.grid[r][c] && B.grid[r][c].pid === 'jar') return [r, c]; return null; };
-const jarAtBottom = () => { for (let c = 0; c < BN; c++) { const t = B.grid[BN - 1][c]; if (t && t.pid === 'jar') return [BN - 1, c]; } return null; };
+const jarPos = () => { for (let r = 0; r < BH; r++) for (let c = 0; c < BW; c++) if (B.grid[r][c] && B.grid[r][c].pid === 'jar') return [r, c]; return null; };
+const jarAtBottom = () => { for (let c = 0; c < BW; c++) { const t = B.grid[BH - 1][c]; if (t && t.pid === 'jar') return [BH - 1, c]; } return null; };
 // Заменить фишку в клетке (с маленькой анимацией появления)
 function putTile(r, c, pid) {
   const old = B.grid[r][c]; if (old) old.el.remove();
@@ -3631,7 +3638,7 @@ function applyBoardPending() {
   selectTile(null); clearHint();
   if (Q.jarOff) {                                  // не успели — банка исчезает, на её месте обычная фишка
     Q.jarOff = false; Q.jar = false;
-    for (let r = 0; r < BN; r++) for (let c = 0; c < BN; c++) if (B.grid[r][c].pid === 'jar') {
+    for (let r = 0; r < BH; r++) for (let c = 0; c < BW; c++) if (B.grid[r][c].pid === 'jar') {
       const P = pids(), set = boardSet().slice().sort(() => Math.random() - .5);
       let pid = set[0];
       for (const v of set) { P[r][c] = v; if (!lineAt(P, r, c)) { pid = v; break; } }
@@ -3646,7 +3653,7 @@ function applyBoardPending() {
   }
   if (Q.puddles) {                                 // лужи — в случайные клетки с продуктами
     const free = [];
-    for (let r = 0; r < BN; r++) for (let c = 0; c < BN; c++) if (!isSpecial(B.grid[r][c].pid)) free.push([r, c]);
+    for (let r = 0; r < BH; r++) for (let c = 0; c < BW; c++) if (!isSpecial(B.grid[r][c].pid)) free.push([r, c]);
     free.sort(() => Math.random() - .5).slice(0, Q.puddles).forEach(([r, c]) => putTile(r, c, 'puddle'));
     Q.puddles = 0;
   }
