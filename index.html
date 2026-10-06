@@ -251,6 +251,41 @@ button:focus-visible{outline:3px solid var(--violet);outline-offset:2px}
 .howbtn{margin-top:12px;border:0;border-radius:16px;padding:7px 18px;font-weight:900;font-size:15px;cursor:pointer;color:#5A1CC0;
   background:rgba(255,255,255,.88);box-shadow:0 3px 0 rgba(90,28,192,.45),0 0 12px rgba(255,255,255,.6)}
 .howbtn:active{transform:translateY(3px);box-shadow:0 0 0 rgba(90,28,192,.45)}
+/* ===== Этап 10.1: компактный режим (короткий экран, например в браузере с панелями) ===== */
+#app.compact .hud{padding:4px 8px 2px;gap:4px}
+#app.compact .clock{padding:2px 8px 2px 3px;border-radius:14px}
+#app.compact .clock svg{width:22px;height:22px}
+#app.compact .clock b{font-size:17px}
+#app.compact .clock span{font-size:11px;line-height:1.1}
+#app.compact .stat{font-size:14px;padding:2px 7px 2px 2px;border-radius:13px}
+#app.compact .stat svg{width:19px;height:19px}
+#app.compact .sndbtn{width:28px;height:28px}
+#app.compact .sndbtn svg{width:18px;height:18px}
+#app.compact .dayline{margin-top:2px;height:5px}
+#app.compact .daymark{top:-3px;height:11px}
+#app.compact .chips{padding:4px 8px 9px;gap:5px}
+#app.compact .chip{padding:1px 6px 3px 1px;border-radius:13px}
+#app.compact .chip .face{width:30px;height:27px;border-radius:9px}
+#app.compact .chip .cname{font-size:12px}
+#app.compact .bar{height:9px;margin-top:2px}
+#app.compact .bar .knob{width:12px;height:12px;margin:-6px 0 0 -6px;border-width:2.5px}
+#app.compact .dock{padding:4px 8px 5px}
+#app.compact .dbtn{padding:3px 6px;font-size:15px;border-radius:15px}
+#app.compact .dbtn svg{width:24px;height:24px}
+/* ===== Этап 10.1: кнопка «Установить на экран» и карточка с шагами ===== */
+.installbtn{margin-top:10px;border:0;border-radius:16px;padding:8px 18px;font-weight:900;font-size:15px;cursor:pointer;color:#fff;
+  display:inline-flex;align-items:center;gap:7px;background:linear-gradient(180deg,#7BFFE6,#18DDB8 55%,#0CBF9F);
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,.6),0 3px 0 #07806C,0 0 12px rgba(24,221,184,.55);text-shadow:0 1px 0 rgba(0,0,0,.25)}
+.installbtn svg{width:20px;height:20px}
+.installbtn:active{transform:translateY(3px);box-shadow:inset 0 0 0 2px rgba(255,255,255,.6),0 0 0 #07806C}
+.installbtn[hidden]{display:none}
+.card.inst h2{font-size:24px;margin-bottom:8px}
+.inststeps{margin:0 0 12px;padding:0;list-style:none;counter-reset:st;text-align:left}
+.inststeps li{counter-increment:st;position:relative;padding:0 0 9px 34px;font-weight:700;font-size:15px;line-height:1.3;color:var(--ink-soft)}
+.inststeps li::before{content:counter(st);position:absolute;left:0;top:-1px;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;
+  font-size:13px;font-weight:900;color:#fff;background:linear-gradient(135deg,#8A3CFF,#FF2E93)}
+.inststeps b{color:var(--ink)}
+.instnote{font-size:13px;font-weight:700;color:var(--ink-soft);margin:0 2px 12px;line-height:1.35;text-align:left}
 .dbtn.urgent{animation:walkCall .55s ease-in-out infinite alternate}
 .dbtn.out{filter:saturate(.7);opacity:.85}
 @keyframes walkCall{from{box-shadow:inset 0 0 0 2.5px rgba(255,255,255,.6),0 5px 0 var(--c3),0 0 10px var(--gl)}
@@ -823,6 +858,7 @@ button:focus-visible{outline:3px solid var(--violet);outline-offset:2px}
       <p class="tagline">Три в ряд, три хвоста и один холодильник</p>
       <button class="cta" id="btnStart">Начать день</button>
       <div><button class="howbtn" id="btnHow">Как играть</button></div>
+      <div><button class="installbtn" id="btnInstall" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.6" fill="none" stroke="#fff" stroke-width="2.2"/><path d="M12 7v7.5M8.8 11.5L12 14.7l3.2-3.2" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Установить на экран</button></div>
       <div class="resetRow" id="startReset" hidden></div>
     </div>
   </div>
@@ -847,6 +883,14 @@ button:focus-visible{outline:3px solid var(--violet);outline-offset:2px}
       </ul>
       <p class="hownote">Звук — кнопка с динамиком вверху: всё, без музыки, тишина. На iPhone звук не слышно, если включён беззвучный режим (переключатель сбоку).</p>
       <button class="cta alt" id="btnHowClose">Понятно</button></div>
+  </div>
+
+  <!-- Этап 10.1: как установить игру на экран телефона -->
+  <div class="overlay" id="instOv" hidden>
+    <div class="card how inst"><h2>Игра на весь экран</h2>
+      <ol class="inststeps" id="instSteps"></ol>
+      <p class="instnote" id="instNote"></p>
+      <button class="cta alt" id="btnInstClose">Понятно</button></div>
   </div>
 
   <!-- Пауза -->
@@ -3056,7 +3100,20 @@ function syncPos(ms = 0, cls = '') {
    2) если кухне не хватает высоты — доска уступает: клетка уменьшается до cellMin;
    3) дальше уступает кухня: от kitchenMin до kitchenSoft;
    4) если и этого мало — кухня и доска сжимаются вместе. */
+/* Этап 10.1: сначала раскладка в обычном виде; если кухне всё равно тесно (клетка меньше cellMin) —
+   компактный режим (ниже шапка, карточки и кнопки) и раскладка заново. Решение всегда по обычному виду,
+   поэтому режим не «дрожит» туда-сюда */
 function boardMetrics() {
+  app.classList.remove('compact');
+  boardMetricsPass();
+  if (B.layoutMode === 'кухня уступает' || B.layoutMode === 'сжато всё') {
+    app.classList.add('compact');
+    boardMetricsPass();
+    B.layoutMode += ' · компактно';
+    showLayoutInfo(B.layoutMode);
+  }
+}
+function boardMetricsPass() {
   const cb = CONFIG.board, a = app.getBoundingClientRect();
   const h = el => el ? el.getBoundingClientRect().height : 0;
   // всё, что не кухня и не сама доска: панели, карточки, рамка доски
@@ -4382,6 +4439,7 @@ if (STANDALONE) {
   addEventListener('popstate', () => {
     if (!$('#debug').hidden) $('#debug').hidden = true;
     else if (!$('#howOv').hidden) $('#howOv').hidden = true;
+    else if (!$('#instOv').hidden) $('#instOv').hidden = true;
     else if (S.fridge.open) closeFridge();
     else if (!$('#tripCard').hidden) hideTrip();
     else if (S.running && !S.over && !S.paused) pause(true);
@@ -4393,6 +4451,46 @@ if (STANDALONE) {
 const LANDSCAPE = matchMedia('(orientation: landscape) and (max-height: 500px) and (pointer: coarse)');
 const onTurn = () => { if (LANDSCAPE.matches) pause(true); };
 if (LANDSCAPE.addEventListener) LANDSCAPE.addEventListener('change', onTurn); else if (LANDSCAPE.addListener) LANDSCAPE.addListener(onTurn);
+
+/* Этап 10.1: «Установить на экран». Кнопка видна только во вкладке браузера на своём сайте
+   (не с иконки и не в окне Claude). Chrome на Android даёт системное окно установки через beforeinstallprompt;
+   где его нет (iPhone, Яндекс и другие) — карточка с шагами */
+const IS_IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const INSTALL = { evt: null, done: false };
+function canOfferInstall() {
+  let top = false; try { top = window.self === window.top; } catch (e) {}
+  return top && !STANDALONE && !INSTALL.done && (location.protocol === 'https:' || location.hostname === 'localhost');
+}
+function refreshInstall() { $('#btnInstall').hidden = !canOfferInstall(); }
+addEventListener('beforeinstallprompt', e => { e.preventDefault(); INSTALL.evt = e; refreshInstall(); });
+addEventListener('appinstalled', () => { INSTALL.done = true; INSTALL.evt = null; refreshInstall(); toast('Готово! Запускай игру с иконки на экране'); });
+function showInstallSteps() {
+  const steps = IS_IOS ? [
+    'Открой эту страницу в <b>Safari</b>.',
+    'Нажми <b>«Поделиться»</b> — квадрат со стрелкой вверх.',
+    'Прокрути меню и выбери <b>«На экран „Домой“»</b> → <b>«Добавить»</b>.',
+    'Дальше запускай игру <b>с иконки</b>: на весь экран, без панелей браузера.',
+  ] : [
+    'Открой эту страницу в <b>Chrome</b>.',
+    'Нажми меню <b>⋮</b> вверху справа.',
+    'Выбери <b>«Установить приложение»</b> или <b>«Добавить на гл. экран»</b>.',
+    'Дальше запускай игру <b>с иконки</b>: на весь экран, без панелей браузера.',
+  ];
+  $('#instSteps').innerHTML = steps.map(s => `<li>${s}</li>`).join('');
+  $('#instNote').textContent = IS_IOS
+    ? 'С иконки игра начнётся с первого дня: прогресс из Safari туда не переносится. После первого запуска работает и без интернета.'
+    : 'Прогресс сохранится. После первого запуска игра работает и без интернета.';
+  $('#instOv').hidden = false;
+}
+$('#btnInstall').addEventListener('click', () => {
+  const e = INSTALL.evt;
+  if (!e) { showInstallSteps(); return; }
+  INSTALL.evt = null;                              // окно установки показывается один раз на событие
+  e.prompt();
+  e.userChoice.then(c => { if (c && c.outcome === 'accepted') INSTALL.done = true; refreshInstall(); }).catch(() => {});
+});
+$('#btnInstClose').addEventListener('click', () => { $('#instOv').hidden = true; });
+refreshInstall();
 /* Офлайн и обновления: сервис-воркер только на своём сайте (https, не внутри окна Claude) */
 (function () {
   let top = false; try { top = window.self === window.top; } catch (e) {}
