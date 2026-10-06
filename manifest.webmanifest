@@ -1,0 +1,17 @@
+{
+  "name": "Накорми меня",
+  "short_name": "Накорми меня",
+  "description": "Три в ряд, три хвоста и один холодильник",
+  "lang": "ru",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FFC2EC",
+  "theme_color": "#FF9FDB",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
