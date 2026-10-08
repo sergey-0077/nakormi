@@ -234,9 +234,9 @@ button:focus-visible{outline:3px solid var(--violet);outline-offset:2px}
 .cookbtn.tutglow:not([disabled]){animation:cookCall .55s ease-in-out infinite alternate}
 @keyframes cookCall{to{box-shadow:inset 0 0 0 3px rgba(255,255,255,.55),0 6px 0 #A00A4E,0 0 22px 4px rgba(255,240,107,.95)}}
 /* последний шаг — строкой в плашке итога миски */
-.tripcard .ttut{display:flex;align-items:center;gap:6px;margin-top:4px;padding:4px 6px;border-radius:10px;background:#FFF4D6;
-  font-size:13px;font-weight:900;line-height:1.2;text-align:left;color:var(--ink)}
-.tripcard .ttut b{flex:none;margin-left:auto;padding:3px 9px;border-radius:9px;color:#fff;background:linear-gradient(180deg,#FF9ED0,#FF2E93)}
+.tripcard .ttut{display:flex;align-items:center;gap:8px;margin-top:6px;padding:6px 8px;border-radius:10px;background:#FFF4D6;
+  font-size:15.5px;font-weight:900;line-height:1.2;text-align:left;color:var(--ink)}
+.tripcard .ttut b{flex:none;margin-left:auto;padding:5px 11px;border-radius:9px;color:#fff;background:linear-gradient(180deg,#FF9ED0,#FF2E93)}
 /* подсказка события и «Как играть» — карточки поверх игры, время стоит */
 .card.tip .tipart{display:block;width:84px;height:76px;margin:0 auto 4px}
 .card.tip h2{font-size:24px}
@@ -357,37 +357,40 @@ button:focus-visible{outline:3px solid var(--violet);outline-offset:2px}
 
 /* ================= Этап 6.1: итог миски ================= */
 .tripcard{position:absolute;left:50%;bottom:6px;z-index:36;   /* над облачками реплик; холодильник её прячет */
-  width:min(96%,390px);transform:translateX(-50%);cursor:pointer;
-  border-radius:20px;padding:6px 10px 7px;border:2.5px solid transparent;
+  width:min(97%,460px);transform:translateX(-50%);cursor:pointer;
+  border-radius:22px;padding:8px 12px 9px;border:2.5px solid transparent;
   background:linear-gradient(180deg,#FFFFFF,#FFEFFB) padding-box,var(--rainbow) border-box;
   box-shadow:0 4px 0 rgba(120,20,160,.3),0 0 18px rgba(255,80,220,.5);animation:tripIn .35s cubic-bezier(.3,1.5,.5,1)}
 .tripcard[hidden]{display:none}
-.tripcard .tx{position:absolute;right:6px;top:4px;width:24px;height:24px;border:0;border-radius:50%;padding:0;cursor:pointer;
-  font-size:17px;font-weight:900;line-height:22px;color:#fff;background:linear-gradient(#FF9ED0,#FF2E93);box-shadow:0 2px 0 #A00A4E}
+.tripcard .tx{position:absolute;right:7px;top:6px;width:30px;height:30px;border:0;border-radius:50%;padding:0;cursor:pointer;
+  font-size:20px;font-weight:900;line-height:28px;color:#fff;background:linear-gradient(#FF9ED0,#FF2E93);box-shadow:0 2px 0 #A00A4E}
 .tripcard.out{animation:tripOut .25s ease-in forwards}
 @keyframes tripIn{0%{transform:translateX(-50%) translateY(18px) scale(.85);opacity:0}100%{transform:translateX(-50%);opacity:1}}
 @keyframes tripOut{100%{transform:translateX(-50%) translateY(12px) scale(.9);opacity:0}}
-.tripcard .th{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:2px 6px;margin-bottom:3px;padding:0 24px}   /* этап 9.1: не налезает на «×» */
+.tripcard .th{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:2px 8px;margin-bottom:5px;padding:0 30px}   /* этап 9.1: не налезает на «×» */
 .tripcard .th .st{display:flex;gap:1px}
-.tripcard .th .st svg{width:21px;height:21px}
-.tripcard .th b{font-size:17px;font-weight:900;color:var(--hot)}
+.tripcard .th .st svg{width:27px;height:27px}
+.tripcard .th b{font-size:21px;font-weight:900;color:var(--hot)}
 .tripcard .th b.low{color:#7E6A90}
-.tripcard .th .combo{font-style:normal;font-size:12.5px;font-weight:900;padding:1px 8px;border-radius:9px;color:#fff;white-space:nowrap}
+.tripcard .th .combo{font-style:normal;font-size:15px;font-weight:900;padding:1px 8px;border-radius:9px;color:#fff;white-space:nowrap}
 .tripcard .th .combo.good{background:linear-gradient(90deg,#FFB21F,#FF2E93)}
 .tripcard .th .combo.bad{background:#B9A6C8}
-.tripcard .tr{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:900;line-height:1;padding:2px 0}
-.tripcard .tr svg.face{width:30px;height:26px;flex:none}
-.tripcard .tr .nm{width:74px;flex:none;text-align:left}
-.tripcard .tr .bar{flex:1;height:9px;border-radius:5px;background:#F1E4F8;overflow:hidden;box-shadow:inset 0 1px 2px rgba(80,0,60,.15)}
+.tripcard .tr{display:flex;align-items:center;gap:7px;font-size:17.5px;font-weight:900;line-height:1;padding:4px 0}
+.tripcard .tr svg.face{width:38px;height:33px;flex:none}
+.tripcard .tr .nm{width:90px;flex:none;text-align:left}
+.tripcard .tr .bar{flex:1;min-width:24px;height:11px;border-radius:6px;background:#F1E4F8;overflow:hidden;box-shadow:inset 0 1px 2px rgba(80,0,60,.15)}
 .tripcard .tr .bar i{display:block;height:100%;border-radius:5px;background:linear-gradient(90deg,#4BEA95,#12B866)}
 .tripcard .tr.waste .bar i{background:linear-gradient(90deg,#C9B6D6,#9C86AE)}
-.tripcard .tr .pc{min-width:82px;flex:none;text-align:right;color:var(--ink-soft);white-space:nowrap}
-.tripcard .tr .pt{width:38px;flex:none;text-align:right;color:#10B955}
+.tripcard .tr .pc{min-width:100px;flex:none;text-align:right;color:var(--ink-soft);white-space:nowrap}
+.tripcard .tr .pt{width:46px;flex:none;text-align:right;color:#10B955}
 .tripcard .tr .pt.bad{color:var(--r)}
 .tripcard .tr.waste .nm{width:auto;color:#7E6A90}
-.tripcard .tw{font-size:13px;font-weight:800;color:#7E6A90;text-align:left;margin:1px 0 0 36px;line-height:1.2}
-.tripcard .tw.why{margin:-1px 0 2px 36px;color:#8A4A9A;font-style:italic}
-.tripcard .tt{display:flex;justify-content:space-between;font-size:14.5px;font-weight:900;border-top:1.5px dashed #F1D3F4;margin-top:3px;padding-top:3px}
+.tripcard .tw{font-size:16px;font-weight:800;color:#7E6A90;text-align:left;margin:1px 0 0 45px;line-height:1.2}
+.tripcard .tw.why{margin:-1px 0 3px 45px;color:#8A4A9A;font-style:italic}
+.tripcard .tt{display:flex;justify-content:space-between;font-size:18px;font-weight:900;border-top:1.5px dashed #F1D3F4;margin-top:4px;padding-top:5px}
+/* этап 10.3.2: узкий экран — колонки уже, чтобы полоска не пропала */
+@media (max-width:379px){.tripcard .tr{font-size:16px;gap:5px}.tripcard .tr .nm{width:80px}.tripcard .tr .pc{min-width:88px}.tripcard .tr .pt{width:40px}}
+.tripcard.tall{bottom:auto;top:4px}   /* этап 10.3.2: не помещается в кухню — сверху, наезжает на доску */
 .tripcard .tt span:last-child{color:#10B955}
 .tripcard .tt span.bad{color:var(--r)}
 
@@ -2701,8 +2704,9 @@ function showTrip(trip) {
   el.innerHTML = `<button class="tx" aria-label="Закрыть">×</button><div class="th"><span class="st">${[1, 2, 3, 4, 5].map(i => STAR_SM(i <= trip.stars)).join('')}</span>
       <b class="${trip.stars <= 2 ? 'low' : ''}">${T.labels[trip.stars]}</b>${comboTag(trip)}</div>${rows}${waste}
     <div class="tt"><span>Миска для ${CONFIG.pets[trip.to].gen}</span><span class="${trip.total < 0 ? 'bad' : ''}">Итого ${trip.total >= 0 ? '+' : '−'}${Math.abs(trip.total)}</span></div>${tutTripRow()}`;
-  el.classList.remove('out'); el.hidden = false;
+  el.classList.remove('out', 'tall'); el.hidden = false;
   void el.offsetWidth;
+  el.classList.toggle('tall', el.offsetHeight > $('#stage').clientHeight - 10);   // этап 10.3.2: не влезла в кухню — сверху
   tripShownAt = performance.now();
   clearTimeout(tripTimer);   // этап 6.4: висит, пока не тапнут (или не сменит новая миска / не откроют холодильник)
 }
@@ -3014,7 +3018,10 @@ function layoutBubbles(now) {
     const hw = hb.el.offsetWidth, hh = hb.el.offsetHeight, aTop = app.getBoundingClientRect().top;
     let hy = Math.max(hy0, top + hh / 2);
     const tc = $('#tripCard');
-    if (tc && !tc.hidden) hy = Math.max(top + hh / 2, Math.min(hy, tc.getBoundingClientRect().top - aTop - hh / 2 - 6));
+    if (tc && !tc.hidden) {
+      const tr = tc.getBoundingClientRect(), up = tr.top - aTop - hh / 2 - 6;
+      hy = up - hh / 2 >= top ? Math.min(hy, up) : Math.max(hy, tr.bottom - aTop + hh / 2 + 6);   // этап 10.3.2
+    }
     hb.el.style.left = hx + 'px'; hb.el.style.top = hy + 'px';
     const hTop = hy - hh / 2, hBot = hy + hh / 2;
     for (const r of vis) {                                         // облачко питомца наезжает — выше хозяйки, а нет места — ниже
