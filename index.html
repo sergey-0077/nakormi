@@ -642,15 +642,15 @@ button:focus-visible{outline:3px solid var(--violet);outline-offset:2px}
 .pill.all{background:linear-gradient(#4BEA95,#12B866)}
 .pill.part{background:linear-gradient(#FFE27A,#FFB21F);color:#7A4200}
 .saylayer{position:absolute;inset:0;pointer-events:none;z-index:35;overflow:hidden}
-.bubble{position:absolute;max-width:214px;width:max-content;padding:6px 11px 7px;border-radius:15px;background:#fff;color:var(--ink);
-  font-weight:900;font-size:17px;line-height:1.15;text-align:center;--bb:#FF7AC8;
+.bubble{position:absolute;max-width:236px;width:max-content;padding:6px 11px 7px;border-radius:15px;background:#fff;color:var(--ink);
+  font-weight:900;font-size:19px;line-height:1.15;text-align:center;--bb:#FF7AC8;
   box-shadow:0 0 0 2.5px var(--bb),0 4px 0 rgba(90,20,110,.22),0 0 12px rgba(255,255,255,.7);
   transform:translate(-50%,-100%) scale(.5);transform-origin:50% 100%;opacity:0;transition:transform .2s cubic-bezier(.3,1.6,.5,1),opacity .15s}
 .bubble.show{transform:translate(-50%,-100%) scale(1);opacity:1}
 .bubble::after{content:"";position:absolute;left:50%;bottom:-8px;margin-left:-7px;border:7px solid transparent;border-top-color:var(--bb);border-bottom:0}
 .bubble.b-donald{--bb:#FFA51F}.bubble.b-rostik{--bb:#22BF4A}.bubble.b-alisa{--bb:#8A3CFF}
 .hostsay{position:absolute;left:50%;bottom:78px;z-index:38;pointer-events:none;max-width:86%;width:max-content;text-align:center;
-  padding:8px 18px 9px;border-radius:20px;color:#fff;font-weight:900;font-size:18px;line-height:1.15;text-shadow:0 1px 0 rgba(120,0,60,.35);
+  padding:8px 18px 9px;border-radius:20px;color:#fff;font-weight:900;font-size:20px;line-height:1.15;text-shadow:0 1px 0 rgba(120,0,60,.35);
   background:linear-gradient(90deg,#FF6FC0,#FF2E93);box-shadow:inset 0 0 0 2.5px rgba(255,255,255,.6),0 4px 0 #A00A4E,0 0 16px rgba(255,46,147,.55);
   transform:translateX(-50%) scale(.5);opacity:0;transition:transform .2s cubic-bezier(.3,1.6,.5,1),opacity .15s}
 .hostsay.show{transform:translateX(-50%) scale(1);opacity:1}
@@ -971,7 +971,10 @@ const CONFIG = {
   // Реплики (этап 5): облачко держится ms; между репликами одного говорящего — gapMs;
   // «фоновые» реплики (голод, доска) — не чаще раза в lowCooldown; голодные напоминают о себе раз в askEvery игровых секунд
   say: { ms: 2600, shortMs: 1400, gapMs: 400, lowCooldown: 9000, askEvery: 22, hostMs: 2400,
-         readMin: 4000, readMax: 7500, readBase: 2200, readPerChar: 70, shortMin: 2600, shortMax: 4000 },                  // поедание и отказ (реальные секунды)
+         readMin: 5000, readMax: 10000, readBase: 2800, readPerChar: 90, shortMin: 3500, shortMax: 5000,   // этап 10.3: ×1,3
+         callMs: 2000, callEvery: 30000,      // этап 10.3: «Пойдём есть вкусное!» облачком 2 с, не чаще раза в 30 с (реальные мс)
+         idleMin: 26, idleMax: 40,            // этап 10.3: сытые бормочут раз в 26–40 игровых секунд
+         cascadeWave: 3 },                    // этап 10.3: на третьей волне каскада кто-то восхищается                  // поедание и отказ (реальные секунды)
   bowl: { maxItems: 3, chainBelow: 90, minLeft: .05 },  // в цепочке — у кого сытость ниже 90; меньше 5% порции — не остаток
   // Пакетики-вкусняшки (этап 3в). Действие щепотки (+30 к пригодности) и каприза (−20) включится на этапе 4
   treats: {
@@ -1047,7 +1050,8 @@ const CONFIG = {
     wasteFun: ['мусорка сыта', 'Сергей доест?', 'завтра будет лучше', 'ведро довольно'],
     tapGuard: 500 },                              // этап 9.1: первые 0,5 с касание мимо плашки её не закрывает
   // Этап 9: звук. Громкости 0–1; petCooldown и callCooldown — реальные секунды; key — выбор кнопки звука
-  sound: { music: .35, duck: .15, voice: 1, sfx: .6, pets: .7, jingle: .45, petCooldown: 4, callCooldown: 30,
+  sound: { hostVoice: false,                     // этап 10.3: голос Ольги выключен — только облачко (true — вернуть)
+    music: .35, duck: .15, voice: 1, sfx: .6, pets: .7, jingle: .45, petCooldown: 4, callCooldown: 30,
     musicFadeIn: 1.5, musicFadeOut: .8, key: 'nakormi-sound-v1',
     loopSamples: 5195421, mp3Delay: 1105 },          // точная длина петли музыки и задержка mp3-кодера (сэмплы 44,1 кГц)
   saveKey: 'nakormi-save-v1',                      // сохранение в localStorage: только утро дня
@@ -1749,6 +1753,7 @@ function newState() {
     time: 0,                                      // игровые секунды дня: от них часы, фазы и голод
     greenAcc: 0,                                  // накопитель секунд для очков за зелёную зону
     askAcc: 0,                                    // накопитель для напоминаний голодных
+    idleAt: null, morningJoy: false,              // этап 10.3: бормотание сытых, утренняя радость хозяйки
     moves: 0,                                     // сделано ходов (статистика)
     debugSuit: false,                             // отладка: показывать пригодность и довольство
     waste: {},                                    // утиль за день: pid → порций (для итога)
@@ -1951,10 +1956,13 @@ function syncSpot(id) {
   if (want !== p.spot) { p.spot = want; placePet(id); }
 }
 /* Каждый кадр. S.t — реальные секунды (поедание идёт всегда).
-   Игровое время дня идёт, только пока холодильник закрыт */
+   Игровое время дня идёт, только пока холодильник закрыт (и пока не висит облачко-зов, этап 10.3) */
+// Этап 10.3: облачко-зов хозяйки перед холодильником. id — кого зовут, until — когда открыть, at — прошлый зов
+const CALL = { id: null, until: 0, at: -1e9, text: '' };
 function update(dt) {
   S.t += dt;
-  if (!S.fridge.open) tickDay(dt);
+  if (CALL.id && performance.now() >= CALL.until) callDone();
+  if (!S.fridge.open && !CALL.id) tickDay(dt);
   if (!S.running) return;                // день мог закончиться в tickDay
   const pi = phaseIndex(dayT());
   if (pi !== S.phaseIdx) { S.phaseIdx = pi; const ph = CONFIG.phases[pi]; banner(ph.name, ph.hint); }
@@ -2000,6 +2008,13 @@ function tickDay(dt) {
     S.askAcc = 0;
     const asking = PET_IDS.filter(canFeed);
     if (asking.length) { const id = asking[Math.floor(Math.random() * asking.length)]; say(id, zoneOf(S.pets[id].sat) === 'red' ? 'veryHungry' : 'hungry', {}, 0); }
+  }
+  // этап 10.3: сытый отдыхающий питомец иногда что-то бормочет (фон, не перебивает)
+  if (S.idleAt == null) S.idleAt = S.time + CONFIG.say.idleMin + Math.random() * (CONFIG.say.idleMax - CONFIG.say.idleMin);
+  if (S.time >= S.idleAt) {
+    S.idleAt = S.time + CONFIG.say.idleMin + Math.random() * (CONFIG.say.idleMax - CONFIG.say.idleMin);
+    const calm = PET_IDS.filter(id => { const p = S.pets[id]; return zoneOf(p.sat) === 'green' && !p.eating && !p.out && p.spot === 'rest' && BUB[id].until < performance.now(); });
+    if (calm.length) say(calm[Math.floor(Math.random() * calm.length)], 'idle', {}, 0);
   }
   // очки за зелёную зону — раз в greenTick секунд
   S.greenAcc += dt;
@@ -2224,7 +2239,7 @@ function coverTop() { const a = app.getBoundingClientRect(), c = $('#chips').get
 window.addEventListener('resize', () => { fridgeOv.style.top = coverTop(); });
 
 /* ---------- Окно холодильника ---------- */
-function openFridge(id) {
+function openFridge(id, called) {
   if (!canFeed(id)) return;
   const f = S.fridge;
   Object.assign(f, { open: true, pet: id, sel: [], missing: [], pinch: null, sig: '', psig: '', tsig: '', csig: null, ctext: null, host: null, reply: null });
@@ -2239,15 +2254,44 @@ function openFridge(id) {
   PTAG.list.forEach(t => { clearTimeout(t.timer); t.el.remove(); }); PTAG.list = [];   // ярлычки «ещё N тройки»
   hideTrip(true);
   // «Пойдём есть вкусное!» — и ответ питомца, если в прошлый раз ему не понравилось
-  say('host', 'call', { n: nickOf(id) }, 1);
+  // этап 10.3: если зов уже был облачком — та же фраза подзаголовком, без повтора
+  if (called) S.fridge.host = { text: called, until: performance.now() + readMs(called, CONFIG.say.hostMs) };
+  else say('host', callKey(id), { n: nickOf(id) }, 1);
   const last = S.pets[id].lastOwn;
   if (last === 'refuse' || last === 'meh' || S.pets[id].joy < CONFIG.joy.grumpyBelow) {
-    setTimeout(() => { if (S.fridge.open && S.fridge.pet === id) { S.fridge.reply = { text: phrase(id, 'replyCall'), until: performance.now() + 2600 }; S.fridge.psig = ''; } }, 900);
+    setTimeout(() => { if (S.fridge.open && S.fridge.pet === id) { const t = phrase(id, 'replyCall'); S.fridge.reply = { text: t, until: performance.now() + readMs(t, CONFIG.say.ms) }; S.fridge.psig = ''; } }, 900);
   }
   renderFridge(); renderTreats(); renderSay();
   tutDone('tap');                                 // этап 8
 }
 function closeFridge() { S.fridge.open = false; fridgeOv.hidden = true; }
+
+/* Этап 10.3: «Пойдём есть вкусное!» облачком на 2 с, потом холодильник. Не чаще раза в 30 с —
+   иначе холодильник сразу, фраза подзаголовком. Пока висит облачко, время дня стоит и доска не ходит;
+   касание в любом месте — сразу холодильник. Котам иногда «Котя, моя котя…» */
+const callKey = id => id !== 'alisa' && Math.random() < .35 ? 'callCat' : 'call';
+function askFridge(id) {
+  if (!canFeed(id) || CALL.id || S.fridge.open) return;
+  const now = performance.now(), C = CONFIG.say;
+  if (now - CALL.at < C.callEvery) { openFridge(id); return; }
+  const text = phrase('host', callKey(id), { n: nickOf(id) });
+  Object.assign(CALL, { id, at: now, until: now + C.callMs, text });
+  hideTrip(true);
+  showBubble('host', text, 2);
+  BUB.host.until = CALL.until; BUB.host.q = [];
+  react(id, 'happy', C.callMs, 'joy');
+}
+function callDone() {
+  const id = CALL.id; if (!id) return;
+  CALL.id = null;
+  const b = BUB.host; if (b.el) { b.el.classList.remove('show'); b.prio = -1; b.until = performance.now() + CONFIG.say.gapMs; }
+  if (S.running && !S.over && canFeed(id)) openFridge(id, CALL.text);
+}
+// касание во время зова — сразу холодильник (и дальше не идёт: ни ход, ни тап по питомцу)
+document.addEventListener('pointerdown', e => {
+  if (!CALL.id || performance.now() - CALL.at < 250) return;
+  e.stopImmediatePropagation(); e.preventDefault(); callDone();
+}, true);
 
 /* Сетка продуктов и слоты миски; перерисовываются только при изменениях */
 function renderFridge() {
@@ -2542,6 +2586,7 @@ function finishEating(id) {
       const cats = zoneOf(S.pets.donald.sat) === 'green' && zoneOf(S.pets.rostik.sat) === 'green';
       if (id !== 'alisa' && cats && Math.random() < .35) setTimeout(() => say('host', 'catsHappy', {}, 1), 800);
       else if (id === 'donald' && Math.random() < .5) setTimeout(() => say('host', 'donaldHappy', {}, 1), 800);
+      else if (id === 'rostik' && Math.random() < .4) setTimeout(() => say('host', 'catHappy', {}, 1), 800);   // этап 10.3
     }
   }
   // этап 6.1: очки за миску идут в плашку «итог миски», без строчек над головой
@@ -2568,7 +2613,7 @@ function passOn(left, chain, pinch, from, trip) {
   const q = chain.slice();
   while (q.length) {
     const nx = q.shift(), p = S.pets[nx];
-    if (p.sat >= CONFIG.bowl.chainBelow || p.eating || p.out || (S.fridge.open && S.fridge.pet === nx)) continue;
+    if (p.sat >= CONFIG.bowl.chainBelow || p.eating || p.out || (S.fridge.open && S.fridge.pet === nx) || CALL.id === nx) continue;
     serveTo(nx, left, { pinch, first: false, chain: q, via: from, trip });
     return;
   }
@@ -2624,6 +2669,10 @@ function finishTrip(trip) {
   trip.stars = tripStars(trip);
   const st = S.stats;
   st.trips.push(trip.stars);
+  // этап 10.3: «Я когда вижу, что с утра всё съедено, я такая счастливая!» — раз в день, утром, миска 5★ без утиля
+  if (trip.stars === 5 && trip.wasteAmt < .001 && phaseIndex(dayT()) === 0 && !S.morningJoy) {
+    S.morningJoy = true; setTimeout(() => { if (S.running) say('host', 'morningJoy', {}, 2); }, 1600);
+  }
   if (!st.bestTrip || trip.stars > st.bestTrip.stars || (trip.stars === st.bestTrip.stars && trip.total > st.bestTrip.total)) st.bestTrip = trip;
   showTrip(trip);
 }
@@ -2726,148 +2775,160 @@ const NICK = { donald: ['Дона', 'Донуся', 'Доня'], rostik: ['Ро�
 const PHRASES = {
   // ---- при сборке миски: только плохое ----
   bored: {
-    donald: ['{P}? Я же только что ел.', '{P}. Опять. Серьёзно?', 'Мы это проходили час назад.'],
-    rostik: ['{P}? Так я ж только что…', 'Ещё {p}? Ну ладно… наверное.'],
-    alisa:  ['{P}? Я же только что ела!', 'Опять {p}? Было же!'] },
+    donald: ['{P}? Я же только что ел.', '{P}. Опять. Серьёзно?', 'Мы это проходили час назад.', 'У меня хорошая память. Это уже было.', 'Это было буквально только что.'],
+    rostik: ['{P}? Так я ж только что…', 'Ещё {p}? Ну ладно… наверное.', '{P}? Я ещё вкус помню…', 'Опять {p}? Я ж только облизнулся.'],
+    alisa:  ['{P}? Я же только что ела!', 'Опять {p}? Было же!', '{P}? Только что же было!', 'Я это уже ела-а!'] },
   tired: {
-    donald: ['Опять {p}? Уже приелось.', '{P}, {p}, {p}… Я веду учёт.', '{P} опять? Меню бы поменять.'],
-    rostik: ['Опять {p}? Приелось уже…', '{P} да {p}… Скучно.'],
-    alisa:  ['Опять {p}? Надоело-о-о!', '{P} опять? Ну мам!'] },
+    donald: ['Опять {p}? Уже приелось.', '{P}, {p}, {p}… Я веду учёт.', '{P} опять? Меню бы поменять.', 'Меню однообразное. Отмечаю.', '{P} в который раз? Я считаю.'],
+    rostik: ['Опять {p}? Приелось уже…', '{P} да {p}… Скучно.', 'Опять {p}… Я уже наизусть знаю.', '{P} каждый раз? Ну такое…'],
+    alisa:  ['Опять {p}? Надоело-о-о!', '{P} опять? Ну мам!', '{P} опять! Ну сколько можно!', 'Каждый раз {p}! Хочу другое!'] },
   yesterday: {                                   // этап 6: «вчера весь день одно и то же»
-    donald: ['{P}? Вчера весь день одно и то же.'],
-    rostik: ['{P}? Вчера ж было…'],
-    alisa:  ['{P}? Вчера весь день было!'] },
+    donald: ['{P}? Вчера весь день одно и то же.', 'Вчера одно и то же. Сегодня тоже?', '{P}? Вчерашнее меню, я помню.'],
+    rostik: ['{P}? Вчера ж было…', 'Опять {p}, как вчера?', 'Вчера весь день это ели…'],
+    alisa:  ['{P}? Вчера весь день было!', 'Как вчера? Ну мам!', '{P}? Вчера уже надоело!'] },
   forbidden: {
-    alisa:  ['{P}? Мне такое нельзя!', 'Это кошачье! Мне нельзя.'] },
+    alisa:  ['{P}? Мне такое нельзя!', 'Это кошачье! Мне нельзя.', 'Нельзя мне! Это для котов!', '{P}? Мне потом плохо будет!'] },
   noEat: {
-    donald: ['{P}? Я кот, а не кролик.', 'Это не еда. Это декор.'],
-    rostik: ['{P}? Я такое не ем.', 'Фу, {p}.'] },
+    donald: ['{P}? Я кот, а не кролик.', 'Это не еда. Это декор.', 'Овощи — это для собак.', '{P}? Не смешно.'],
+    rostik: ['{P}? Я такое не ем.', 'Фу, {p}.', 'Это кому? Не мне.', '{P}? Я ж кот!'] },
   caprice: {
-    donald: ['После пакетика — это есть?..', 'Я пробовал пакетик. А теперь это?'],
-    rostik: ['А пакетика больше нет?', 'После пакетика как-то не то…'],
-    alisa:  ['А где пакетик? Хочу пакетик!', 'После пакетика это невкусно!'] },
+    donald: ['После пакетика — это есть?..', 'Я пробовал пакетик. А теперь это?', 'Вкус пакетика ещё не прошёл.', 'После деликатеса — это?'],
+    rostik: ['А пакетика больше нет?', 'После пакетика как-то не то…', 'Пакетик был вкуснее…', 'Можно ещё пакетик, а?'],
+    alisa:  ['А где пакетик? Хочу пакетик!', 'После пакетика это невкусно!', 'Пакетик! Пакетик хочу!', 'Ну дай пакетик!'] },
   porridge: {
-    donald: ['Пустая каша? А где мясо?', 'Каша без мяса — это оскорбление.'],
-    rostik: ['А мясо где?', 'Одна каша? Ну такое…'],
-    alisa:  ['Каша? А мясико?', 'Без мяса не считается!'] },
+    donald: ['Пустая каша? А где мясо?', 'Каша без мяса — это оскорбление.', 'Я хищник, а не воробей.', 'Где белок? Я требую белок.'],
+    rostik: ['А мясо где?', 'Одна каша? Ну такое…', 'Каша — это гарнир. А еда где?', 'Мне бы мяска…'],
+    alisa:  ['Каша? А мясико?', 'Без мяса не считается!', 'Кашку без мяса не хочу!', 'А где мясико? Одна каша!'] },
   // ---- после еды ----
   great: {
-    donald: ['Вот это я понимаю!', 'Достойно. Продолжайте.', 'Наконец-то нормальная еда.'],
-    rostik: ['Всё вкусно!', 'Ням! А можно ещё?', 'Вот это да!'],
-    alisa:  ['Ура-а-а! Вкуснятина!', 'Я самая счастливая!', 'Обожаю тебя!'] },
+    donald: ['Вот это я понимаю!', 'Достойно. Продолжайте.', 'Наконец-то нормальная еда.', 'Шеф сегодня в ударе.', 'Признаю: вкусно.', 'Можно повторить. Не сразу.'],
+    rostik: ['Всё вкусно!', 'Ням! А можно ещё?', 'Вот это да!', 'Объеденье!', 'Самая вкусная миска!', 'Я сытый и счастливый!'],
+    alisa:  ['Ура-а-а! Вкуснятина!', 'Я самая счастливая!', 'Обожаю тебя!', 'Вкусно-вкусно-вкусно!', 'Ещё! Ещё хочу!', 'Ты лучшая!'] },
   ok: {
-    donald: ['Ну, нормально.', 'Сойдёт.', 'Терпимо.'],
-    rostik: ['Нормально!', 'Неплохо, неплохо.'],
-    alisa:  ['Нормально.', 'Вкусно, но можно вкуснее.'] },
+    donald: ['Ну, нормально.', 'Сойдёт.', 'Терпимо.', 'Без восторга, но съел.', 'Можно было и лучше.'],
+    rostik: ['Нормально!', 'Неплохо, неплохо.', 'Вкусно!', 'Сойдёт, спасибо!'],
+    alisa:  ['Нормально.', 'Вкусно, но можно вкуснее.', 'Съела. Нормально.', 'Ничего так.'] },
   meh: {
-    donald: ['Поел. Но я недоволен.', 'Съел из вежливости.', 'Это было через силу.'],
-    rostik: ['Ну поел… с голодухи.', 'Есть-то надо…'],
-    alisa:  ['Поела. Но я недовольна!', 'Съела, но обиделась.'] },
+    donald: ['Поел. Но я недоволен.', 'Съел из вежливости.', 'Это было через силу.', 'Я это запомню.', 'Ел без удовольствия. Так и запишите.'],
+    rostik: ['Ну поел… с голодухи.', 'Есть-то надо…', 'Ну… еда есть еда.', 'Не очень, но съел.'],
+    alisa:  ['Поела. Но я недовольна!', 'Съела, но обиделась.', 'Через силу съела!', 'Невкусно, но я голодная.'] },
   favorite: {
-    donald: ['Огурчик! Вот это уважение.', 'Огурец! Меня поняли.'],
-    alisa:  ['Перчик! Ура!', 'Перчик мой любимый!'] },
+    donald: ['Огурчик! Вот это уважение.', 'Огурец! Меня поняли.', 'Огурец! Наконец-то!', 'Огурчик — моя слабость.'],
+    alisa:  ['Перчик! Ура!', 'Перчик мой любимый!', 'Перчик! Самый лучший!', 'Ура, перчик!'] },
   refuse_bored: {
-    donald: ['{P} недавно ел. Не буду.', 'Я это уже ел. Унесите.'],
-    rostik: ['Не, {p} я уже ел.', 'Только что ж ел…'],
-    alisa:  ['{P} недавно ела, не буду!', 'Не хочу, было уже!'] },
+    donald: ['{P} недавно ел. Не буду.', 'Я это уже ел. Унесите.', 'Это я уже ел. Не повторяюсь.'],
+    rostik: ['Не, {p} я уже ел.', 'Только что ж ел…', 'Я ж это только что ел!'],
+    alisa:  ['{P} недавно ела, не буду!', 'Не хочу, было уже!', 'Только что было! Не хочу!'] },
   refuse_tired: {
-    donald: ['Опять {p}? Не буду.', 'Приелось. Объявляю голодовку.'],
-    rostik: ['Опять {p}? Не, не хочу.'],
-    alisa:  ['Опять {p}? Не буду!'] },
+    donald: ['Опять {p}? Не буду.', 'Приелось. Объявляю голодовку.', 'Опять {p}. Нет.', 'Хватит {p}. Я отказываюсь.'],
+    rostik: ['Опять {p}? Не, не хочу.', 'Приелось. Не буду.'],
+    alisa:  ['Опять {p}? Не буду!', 'Надоело! Не буду!', 'Опять? Не хочу!'] },
   refuse_caprice: {
-    donald: ['После пакетика? Не буду.'],
-    rostik: ['Хочу пакетик, а не это.'],
-    alisa:  ['Не буду! Хочу пакетик!'] },
+    donald: ['После пакетика? Не буду.', 'Я ждал пакетик.'],
+    rostik: ['Хочу пакетик, а не это.', 'А пакетика нет? Тогда не буду.'],
+    alisa:  ['Не буду! Хочу пакетик!', 'Только пакетик! Остальное не буду!'] },
   refuse_porridge: {
-    donald: ['Пустая каша? Не буду.', 'Каша без мяса? Ни за что.'],
-    rostik: ['Одну кашу? Не, спасибо.'],
-    alisa:  ['Без мяса не буду!'] },
+    donald: ['Пустая каша? Не буду.', 'Каша без мяса? Ни за что.', 'Это не еда, это гарнир.'],
+    rostik: ['Одну кашу? Не, спасибо.', 'Без мяса не хочу.'],
+    alisa:  ['Без мяса не буду!', 'Кашу без мяса не буду!'] },
   refuse_none: {
-    donald: ['Это я не ем.'], rostik: ['Это не еда.'], alisa: ['Не моё.'] },
+    donald: ['Это я не ем.', 'Не моё.'], rostik: ['Это не еда.', 'Такое не ем.'], alisa: ['Не моё.', 'Это не еда!'] },
   refuse_meh: {
-    donald: ['Не хочу.', 'Не сейчас.'], rostik: ['Не хочется…'], alisa: ['Не хочу!'] },
+    donald: ['Не хочу.', 'Не сейчас.', 'Не впечатляет.'], rostik: ['Не хочется…', 'Не, потом.'], alisa: ['Не хочу!', 'Неохота!'] },
   chainGot: {
-    donald: ['Ладно, доем. Из милости.', 'Остатки? Ну, давайте.'],
-    rostik: ['Доем!', 'О, остатки! Мои!', 'Ничего не пропадёт!'],
-    alisa:  ['Мне досталось? Ура!', 'О, чужая миска!'] },
+    donald: ['Ладно, доем. Из милости.', 'Остатки? Ну, давайте.', 'Остатки… Ну ладно, раз уж принесли.'],
+    rostik: ['Доем!', 'О, остатки! Мои!', 'Ничего не пропадёт!', 'Я помогу!', 'Чистая миска — моя работа!'],
+    alisa:  ['Мне досталось? Ура!', 'О, чужая миска!', 'Вкуснятина досталась!', 'Я доем!'] },
   jealous: {
-    donald: ['{to}?! А я тут, между прочим…', 'Сначала {to}? Я запомню.'] },
+    donald: ['{to}?! А я тут, между прочим…', 'Сначала {to}? Я запомню.', 'Опять не я первый?', '{to}? А я, значит, подожду?'] },
   replyCall: {                                   // ответ на «Пойдём есть вкусное», если в прошлый раз было невкусно
-    donald: ['Знаю я твоё вкусное…', 'В прошлый раз тоже было «вкусное».'],
-    rostik: ['Правда вкусное? Точно-точно?'],
-    alisa:  ['А в прошлый раз было невкусно!'] },
+    donald: ['Знаю я твоё вкусное…', 'В прошлый раз тоже было «вкусное».', 'Вкусное? Посмотрим.'],
+    rostik: ['Правда вкусное? Точно-точно?', 'Вкусное? Иду-иду!'],
+    alisa:  ['А в прошлый раз было невкусно!', 'Только чтобы вкусно было!'] },
   // ---- голод и обиды ----
   hungry: {
-    donald: ['Миска пустая. Это намёк.', 'Я бы поел.', 'Кормить будут?'],
-    rostik: ['Есть хочу!', 'А что у нас покушать?'],
-    alisa:  ['Кушать! Кушать!', 'Я голодная!'] },
+    donald: ['Миска пустая. Это намёк.', 'Я бы поел.', 'Кормить будут?', 'Напоминаю: я не ел.', 'Где моя еда?'],
+    rostik: ['Есть хочу!', 'А что у нас покушать?', 'Покормите кота!', 'Я бы чего-нибудь съел.'],
+    alisa:  ['Кушать! Кушать!', 'Я голодная!', 'Есть хочу!', 'Мам, кушать!'] },
   veryHungry: {
-    donald: ['Я умираю с голоду. Почти.', 'Это уже издевательство.'],
-    rostik: ['Очень есть хочу!', 'Живот урчит!'],
-    alisa:  ['Я сейчас упаду от голода!', 'Ну пожа-а-алуйста!'] },
+    donald: ['Я умираю с голоду. Почти.', 'Это уже издевательство.', 'Я пишу жалобу.', 'Кот в опасности!'],
+    rostik: ['Очень есть хочу!', 'Живот урчит!', 'Я сейчас миску съем!', 'Совсем-совсем голодный!'],
+    alisa:  ['Я сейчас упаду от голода!', 'Ну пожа-а-алуйста!', 'Я тут голодаю!', 'Кушать-кушать-кушать!'] },
   offended: {
-    donald: ['Всё. Я обиделся.', 'Не разговариваю.'],
-    rostik: ['Обидно…', 'Про меня забыли.'],
-    alisa:  ['Я обиделась!', 'Никто меня не любит!'] },
+    donald: ['Всё. Я обиделся.', 'Не разговариваю.', 'Я этого не забуду.', 'Можете не извиняться. Всё равно обижен.'],
+    rostik: ['Обидно…', 'Про меня забыли.', 'Ну вот…', 'Я тоже живой…'],
+    alisa:  ['Я обиделась!', 'Никто меня не любит!', 'Всё! Обиделась!', 'Не люблю вас!'] },
   // ---- этап 6.2: сочетания (при сборке и после еды) ----
   combo_meatFish: {
-    donald: ['Мясо с рыбой? Сама ешь такое.', 'Рыба с мясом. Шеф, вы в порядке?'],
-    rostik: ['Фу, кто кладёт мясо с рыбой?', 'Мясо с рыбой… ну такое.'],
-    alisa:  ['Мясо с рыбой? Сама ешь такое!', 'Фу-у, рыба с мясом!'] },
+    donald: ['Мясо с рыбой? Сама ешь такое.', 'Рыба с мясом. Шеф, вы в порядке?', 'Сухопутное с морским? Нет.'],
+    rostik: ['Фу, кто кладёт мясо с рыбой?', 'Мясо с рыбой… ну такое.', 'Мясо или рыба — выбери уже!'],
+    alisa:  ['Мясо с рыбой? Сама ешь такое!', 'Фу-у, рыба с мясом!', 'Мясо и рыба вместе? Странно!'] },
   combo_grains: {
-    donald: ['Каша с кашей? Серьёзно?', 'Две крупы. Гениально.'],
-    rostik: ['Каша с кашей… скучно.'],
-    alisa:  ['Две каши? Ну мам!'] },
+    donald: ['Каша с кашей? Серьёзно?', 'Две крупы. Гениально.', 'Две каши — это не ужин.'],
+    rostik: ['Каша с кашей… скучно.', 'Одна каша, вторая каша… А еда где?'],
+    alisa:  ['Две каши? Ну мам!', 'Каша и ещё каша? Фу!'] },
   combo_feeds: {
-    donald: ['Собачий корм рядом с моим? Оскорбление.'],
-    rostik: ['Кошачий с собачьим? Это что, всё, что осталось?'],
-    alisa:  ['Мой корм с кошачьим? Фу!'] },
+    donald: ['Собачий корм рядом с моим? Оскорбление.', 'Собачье? Рядом с моим?'],
+    rostik: ['Кошачий с собачьим? Это что, всё, что осталось?', 'Корм с кормом… эх.'],
+    alisa:  ['Мой корм с кошачьим? Фу!', 'Кошачий корм? Это не моё!'] },
   combo_dairy: {
-    donald: ['Творог с мясом? Фу.'],
-    rostik: ['Творог с рыбой? Странно…'],
-    alisa:  ['Творог с мясом? Не надо так!'] },
+    donald: ['Творог с мясом? Фу.', 'Творог отдельно, пожалуйста.'],
+    rostik: ['Творог с рыбой? Странно…', 'Творог с мясом? Ну нет.'],
+    alisa:  ['Творог с мясом? Не надо так!', 'Творожок с рыбой? Фу!'] },
   refuse_combo: {
-    donald: ['Такое сочетание я есть не буду.'],
-    rostik: ['Не, такое не буду.'],
-    alisa:  ['Не буду такое! Сама ешь!'] },
+    donald: ['Такое сочетание я есть не буду.', 'Не сочетается. Не буду.'],
+    rostik: ['Не, такое не буду.', 'Такое смешивать нельзя!'],
+    alisa:  ['Не буду такое! Сама ешь!', 'Фу! Не буду такое!'] },
   // ---- этап 6.3: почему не доел (цитата в плашке итога миски) ----
   why_usual: {
-    donald: ['{P}? Недавно же ел.', 'Опять {p}? Хочется нового.'],
-    rostik: ['{P}? Я ж недавно ел. Можно новенькое?'],
-    alisa:  ['{P}? Недавно же ела!', 'Опять {p}? Хочу новенькое!'] },
+    donald: ['{P}? Недавно же ел.', 'Опять {p}? Хочется нового.', 'Было недавно. Хочу другое.'],
+    rostik: ['{P}? Я ж недавно ел. Можно новенькое?', 'Хочется чего-то нового…'],
+    alisa:  ['{P}? Недавно же ела!', 'Опять {p}? Хочу новенькое!', 'Было уже! Давай другое!'] },
   why_full: {
-    donald: ['Я сыт. Спасибо.'],
-    rostik: ['Мне уже хватит.', 'Я сытый!'],
-    alisa:  ['Я наелась!'] },
+    donald: ['Я сыт. Спасибо.', 'Больше не лезет.'],
+    rostik: ['Мне уже хватит.', 'Я сытый!', 'Всё, наелся!'],
+    alisa:  ['Я наелась!', 'Животик полный!'] },
   why_meh: {
-    donald: ['Чего-то не хватает.', 'Ну… сойдёт.'],
-    rostik: ['Нормально, но не вау.'],
-    alisa:  ['Вкусно, но можно вкуснее!'] },
+    donald: ['Чего-то не хватает.', 'Ну… сойдёт.', 'Без огонька.'],
+    rostik: ['Нормально, но не вау.', 'Съедобно, но скучно.'],
+    alisa:  ['Вкусно, но можно вкуснее!', 'Ну так себе!'] },
   // ---- доска ----
-  matchFav:   { donald: ['Огурчик!'], alisa: ['Перчик!'] },
-  matchFour:  { rostik: ['Ого!', 'Вкусняшка!'] },
-  matchSnort: { donald: ['Фыр.', 'Опять это.'] },
+  matchFav:   { donald: ['Огурчик!', 'О, огурцы!'], alisa: ['Перчик!', 'Перчики!'] },
+  matchFour:  { rostik: ['Ого!', 'Вкусняшка!', 'Вот это да!', 'Пакетик будет!'] },
+  matchSnort: { donald: ['Фыр.', 'Опять это.', 'Опять это?', 'Хм.'] },
+  cascade: {                                     // этап 10.3: большой каскад на доске
+    donald: ['Неплохо.', 'Впечатляет. Немного.', 'Так держать.'],
+    rostik: ['Ух ты!', 'Ещё! Ещё!', 'Сколько еды!'],
+    alisa:  ['Ура-а!', 'Вау!', 'Сыпется!'] },
+  // ---- этап 10.3: сытые и спокойные иногда бормочут ----
+  idle: {
+    donald: ['Я тут главный, если что.', 'Охраняю кухню.', 'Порядок на кухне меня устраивает.', 'Сыт. Доволен. Не трогать.', 'Подремлю, пожалуй.'],
+    rostik: ['Хорошо-о…', 'Может, мышку поймать?', 'Мур-мур.', 'А что там у вас на доске?', 'Сытый кот — счастливый кот.'],
+    alisa:  ['Я хорошая девочка!', 'Почеши пузико!', 'Я посторожу!', 'Я тут, если что!', 'Ла-ла-ла!'] },
   // ---- заготовки: этап 6 (утро) и этап 7 (события) ----
   morning: {
-    donald: ['Вчера кормили так себе.', 'Новый день — новые требования.'],
-    rostik: ['Доброе утро! Что на завтрак?'],
-    alisa:  ['Утро! Кушать и гулять!'] },
-  walkAsk:  { alisa: ['Гулять! Гулять!', 'Я к двери, ты за поводком!'] },
-  walking:  { alisa: ['Ура, улица!'], donald: ['Мы с вами. Проследим.'], rostik: ['И я, и я!'] },
-  puddle:   { alisa: ['Я не виновата!', 'Ой… лужа.'] },
-  mouse:    { rostik: ['Смотрите, что я принёс!'], alisa: ['Отдай мышь!'], host: ['Ростя, ты зачем опять мышь припёр?'] },
-  fish:     { donald: ['Рыбки опять голодные.'] },
+    donald: ['Вчера кормили так себе.', 'Новый день — новые требования.', 'Утро. Жду завтрак.', 'Надеюсь, сегодня без повторов.'],
+    rostik: ['Доброе утро! Что на завтрак?', 'Утро! Я уже проголодался!', 'Новый день — новая миска!'],
+    alisa:  ['Утро! Кушать и гулять!', 'Ура, утро!', 'Доброе утро! Я соскучилась!'] },
+  walkAsk:  { alisa: ['Гулять! Гулять!', 'Я к двери, ты за поводком!', 'Мне надо на улицу!', 'Скорее, скорее!'] },
+  walking:  { alisa: ['Ура, улица!', 'Гуляем!'], donald: ['Мы с вами. Проследим.', 'Подышим воздухом.'], rostik: ['И я, и я!', 'Ура, гулять!'] },
+  puddle:   { alisa: ['Я не виновата!', 'Ой… лужа.', 'Оно само…', 'Я не успела!'] },
+  mouse:    { rostik: ['Смотрите, что я принёс!', 'Я охотник!', 'Подарок!'], alisa: ['Отдай мышь!', 'Дай мышку!'], host: ['Ростя, ты зачем опять мышь припёр?'] },
+  fish:     { donald: ['Рыбки опять голодные.', 'Рыбки смотрят на меня. Голодно.'] },
   // этап 7: новые
-  walkBack:   { alisa: ['Нагулялась!', 'Хорошо погуляли!'] },
+  walkBack:   { alisa: ['Нагулялась!', 'Хорошо погуляли!', 'Дома лучше!'] },
   puddleHost: { host: ['Лиса! Ну что ж такое…'] },
-  mouseSaved: { rostik: ['Моя мышь!', 'Это мой трофей!'], alisa: ['Ну и ладно…'] },
-  mouseLost:  { rostik: ['Отобрали…', 'Это была моя мышь!'], alisa: ['Моя теперь!', 'Мышка моя!'] },
-  fishFed:    { donald: ['Рыбки сыты. Теперь моя очередь.'] },
-  fishSad:    { donald: ['Рыбки обиделись. Я бы тоже.'] },
+  mouseSaved: { rostik: ['Моя мышь!', 'Это мой трофей!', 'Спасибо, что заступились!'], alisa: ['Ну и ладно…', 'Ну и не надо…'] },
+  mouseLost:  { rostik: ['Отобрали…', 'Это была моя мышь!', 'Нечестно!'], alisa: ['Моя теперь!', 'Мышка моя!', 'Ням!'] },
+  fishFed:    { donald: ['Рыбки сыты. Теперь моя очередь.', 'Рыбки накормлены. Я следующий.'] },
+  fishSad:    { donald: ['Рыбки обиделись. Я бы тоже.', 'Рыбок забыли. Меня тоже забудут?'] },
   // ---- хозяйка (фразы Ольги) ----
-  call:         { host: ['Пойдём есть вкусное!', 'Пойдём есть вкусное!', '{n}, пойдём есть вкусное!'] },
-  donaldHappy:  { host: ['Ай ты мои штанишки пушистые красивые!', 'Доня котёна!', 'Донуся!'] },
-  catsHappy:    { host: ['Донуси мои котуси!'] },
+  call:         { host: ['Пойдём есть вкусное!', '{n}, пойдём есть вкусное!', 'Пойдём дам вкусного!', '{n}, пойдём дам вкусного!'] },
+  callCat:      { host: ['Котя, моя котя! Пойдём есть вкусное!', 'Котя, моя котя, пойдём дам вкусного!'] },   // этап 10.3: только котам
+  donaldHappy:  { host: ['Ай ты мои штанишки пушистые красивые!', 'Доня котёна!', 'Донуся!', 'Котя, моя котя!'] },
+  catsHappy:    { host: ['Донуси мои котуси!', 'Котя, моя котя!'] },
+  catHappy:     { host: ['Котя, моя котя!'] },                         // этап 10.3: Ростик съел с удовольствием
+  morningJoy:   { host: ['Я когда вижу, что с утра всё съедено, я такая счастливая!'] },   // этап 10.3: раз в день
   refuse:       { host: ['Я кому тут готовила!'] },
   refuseRostik: { host: ['Ростя, ну ты и жопа.', 'Я кому тут готовила!'] },
   refuseAlisa:  { host: ['Лиса, ты дура.', 'Я кому тут готовила!'] },
@@ -2983,7 +3044,7 @@ const pids = () => B.grid.map(row => row.map(t => t ? t.pid : null));
 const SPECIAL = new Set(['puddle', 'jar']);
 const isSpecial = v => SPECIAL.has(v);
 // играть можно, только когда ничего не открыто и никто не готовит
-const canPlay = () => S.running && !S.over && !S.paused && !S.fridge.open;
+const canPlay = () => S.running && !S.over && !S.paused && !S.fridge.open && !CALL.id;
 
 /* ---------- Логика на матрице pid ---------- */
 // Все линии длиной 3+ по строкам и столбцам: [{ pid, cells: [[r, c], ...] }]
@@ -3214,6 +3275,7 @@ async function resolveBoard() {
     for (const k of wiped) { kill.add(k); floatText(cellXY((k / BW) | 0, k % BW), 'Вытерто!', 'good small'); }
     if (jar) { kill.add(jar[0] * BW + jar[1]); fishFed(jar); }
     if (chain === 2) floatText(cellXY((BH - 1) / 2, (BW - 1) / 2), 'Каскад!', 'combo burst');
+    if (chain === CONFIG.say.cascadeWave) cascadeTalk();   // этап 10.3
     for (const k of kill) B.grid[(k / BW) | 0][k % BW].el.classList.add('pop');
     await wait(popMs);
     for (const k of kill) { const r = (k / BW) | 0, c = k % BW; B.grid[r][c].el.remove(); B.grid[r][c] = null; }
@@ -3339,6 +3401,13 @@ function matchReactions(pid, len) {
   if (pid === CONFIG.pets.alisa.favorite && ok('alisa')) joy('alisa', 'matchFav');
   if (len >= 4 && ok('rostik')) joy('rostik', 'matchFour');
 }
+// Этап 10.3: большой каскад — кто-то из питомцев на кухне восхищается
+function cascadeTalk() {
+  const ids = PET_IDS.filter(id => !S.pets[id].eating && !S.pets[id].out);
+  if (!ids.length) return;
+  const id = ids[Math.floor(Math.random() * ids.length)];
+  react(id, 'happy', 1400, 'joy'); say(id, 'cascade', {}, 0, CONFIG.say.shortMs);
+}
 // Перемешать те же фишки так, чтобы не было готовых линий и был ход
 async function shuffleBoard(msg = 'Ходов нет — перемешиваю!') {
   toast(msg);
@@ -3419,7 +3488,7 @@ function onDock(act) {
   if (!S.running || S.over) return;
   if (act === 'fridge') {
     const id = hungriestAsking();
-    if (id) openFridge(id);
+    if (id) askFridge(id);
     else toast(PET_IDS.some(k => S.pets[k].eating) ? 'Все при деле — пусть доедят' : 'Никто не просит есть');
     return;
   }
@@ -3429,7 +3498,7 @@ function onPetTap(id) {
   if (!S.running || S.over) return;
   const p = S.pets[id], cfg = CONFIG.pets[id];
   if (p.eating) return;
-  if (p.spot === 'ask') openFridge(id);
+  if (p.spot === 'ask') askFridge(id);
   else react(id, 'happy', 1400, 'joy');
 }
 
@@ -4176,7 +4245,7 @@ const SND = (() => {
         readPack();
         music = decode(pack.music).catch(() => null);
         jingle = decode(pack.jingle).catch(() => null);
-        setTimeout(() => { for (const k in voices) decode(voices[k]).catch(() => {}); }, 1500);   // голос — в фоне, файлы маленькие
+        if (C.hostVoice) setTimeout(() => { for (const k in voices) decode(voices[k]).catch(() => {}); }, 1500);   // голос — в фоне, файлы маленькие
         ctx.onstatechange = () => { if (ctx.state === 'running' && wantMusic && !musicSrc) startMusic(); };
       }
       if (ctx.state !== 'running' && !held) ctx.resume();
@@ -4232,6 +4301,7 @@ const SND = (() => {
   function voice(text, force) {
     try {
       if (!ok()) return false;
+      if (!C.hostVoice && !force) return false;                      // этап 10.3: голос выключен (отладка — можно)
       readPack();
       const v = voices[norm(text)]; if (!v) return false;            // фразы без записи — только облачко
       const t = performance.now();
@@ -4357,7 +4427,7 @@ const SND = (() => {
     great: 'joy', ok: 'joy', favorite: 'joy', matchFav: 'joy', matchFour: 'joy', walkBack: 'joy', walking: 'joy', walkAsk: 'ask',
     chainGot: 'joy', fishFed: 'joy', morning: 'ask', hungry: 'ask', veryHungry: 'grumble', offended: 'grumble', jealous: 'grumble',
     meh: 'grumble', porridge: 'grumble', matchSnort: 'grumble', puddle: 'grumble', fishSad: 'grumble', replyCall: 'grumble',
-    mouse: 'joy',
+    mouse: 'joy', cascade: 'joy',
   };
   function petKind(who, key) {
     if (key === 'mouseSaved') return who === 'rostik' ? 'joy' : 'grumble';
@@ -4505,7 +4575,7 @@ refreshInstall();
   addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
   if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});   // сохранение не стирать
 })();
-window.__game = { S, CONFIG, SND, startDay, endDay, openFridge, closeFridge, toggleItem, repeatBowl, startCooking, labelFor,
+window.__game = { S, CONFIG, SND, startDay, endDay, openFridge, closeFridge, askFridge, callDone, CALL, toggleItem, repeatBowl, startCooking, labelFor,
   noveltyOf, suitability, shareFor, evalBowl, serveBowl, update, tickDay, absHour, say, phrase, PHRASES, BUB, complaint,
   togglePinch, feedBigAll, absT, stockN, capricious, TREAT,
   loadSave, clearSave, spoilsTonight,
