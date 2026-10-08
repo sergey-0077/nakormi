@@ -649,11 +649,11 @@ button:focus-visible{outline:3px solid var(--violet);outline-offset:2px}
 .bubble.show{transform:translate(-50%,-100%) scale(1);opacity:1}
 .bubble::after{content:"";position:absolute;left:50%;bottom:-8px;margin-left:-7px;border:7px solid transparent;border-top-color:var(--bb);border-bottom:0}
 .bubble.b-donald{--bb:#FFA51F}.bubble.b-rostik{--bb:#22BF4A}.bubble.b-alisa{--bb:#8A3CFF}
-.hostsay{position:absolute;left:50%;bottom:78px;z-index:38;pointer-events:none;max-width:86%;width:max-content;text-align:center;
+.hostsay{position:absolute;left:50%;top:50%;z-index:38;pointer-events:none;max-width:86%;width:max-content;text-align:center;
   padding:8px 18px 9px;border-radius:20px;color:#fff;font-weight:900;font-size:20px;line-height:1.15;text-shadow:0 1px 0 rgba(120,0,60,.35);
   background:linear-gradient(90deg,#FF6FC0,#FF2E93);box-shadow:inset 0 0 0 2.5px rgba(255,255,255,.6),0 4px 0 #A00A4E,0 0 16px rgba(255,46,147,.55);
-  transform:translateX(-50%) scale(.5);opacity:0;transition:transform .2s cubic-bezier(.3,1.6,.5,1),opacity .15s}
-.hostsay.show{transform:translateX(-50%) scale(1);opacity:1}
+  transform:translate(-50%,-50%) scale(.5);opacity:0;transition:transform .2s cubic-bezier(.3,1.6,.5,1),opacity .15s}
+.hostsay.show{transform:translate(-50%,-50%) scale(1);opacity:1}
 .ftitle span.host{color:#FF2E93}
 .fpred .say{background:#fff;border-radius:12px;padding:3px 10px;color:var(--ink);font-weight:900;box-shadow:inset 0 0 0 2px #FFB3DD}
 .fpred .say::before{content:"«"}.fpred .say::after{content:"»"}
@@ -974,7 +974,8 @@ const CONFIG = {
          readMin: 5000, readMax: 10000, readBase: 2800, readPerChar: 90, shortMin: 3500, shortMax: 5000,   // этап 10.3: ×1,3
          callMs: 2000, callEvery: 30000,      // этап 10.3: «Пойдём есть вкусное!» облачком 2 с, не чаще раза в 30 с (реальные мс)
          idleMin: 26, idleMax: 40,            // этап 10.3: сытые бормочут раз в 26–40 игровых секунд
-         cascadeWave: 3 },                    // этап 10.3: на третьей волне каскада кто-то восхищается                  // поедание и отказ (реальные секунды)
+         cascadeWave: 3,
+         hostAt: [200, 300] },                 // этап 10.3.1: облачко хозяйки — середина кухни, между котами (столешница) и Алисой (пол)                    // этап 10.3: на третьей волне каскада кто-то восхищается                  // поедание и отказ (реальные секунды)
   bowl: { maxItems: 3, chainBelow: 90, minLeft: .05 },  // в цепочке — у кого сытость ниже 90; меньше 5% порции — не остаток
   // Пакетики-вкусняшки (этап 3в). Действие щепотки (+30 к пригодности) и каприза (−20) включится на этапе 4
   treats: {
@@ -2986,7 +2987,7 @@ function showBubble(who, text, prio, ms) {
   if (who === 'host') SND.voice(text);                // этап 9: голос хозяйки, если есть запись
   b.el.classList.remove('show'); void b.el.offsetWidth; b.el.classList.add('show');
   b.until = performance.now() + readMs(text, who === 'host' ? CONFIG.say.hostMs : ms); b.prio = prio;
-  if (who !== 'host') layoutBubbles(performance.now());
+  layoutBubbles(performance.now());                 // этап 10.3.1: и хозяйку — в кухню
 }
 // Раскладка облачков: над головой, не на шкалах сытости и не за краями; соседние раздвигаются
 function layoutBubbles(now) {
@@ -3005,6 +3006,23 @@ function layoutBubbles(now) {
     A.x -= need / 2; fitX(A);                                        // левого — влево (сколько пустит край)
     B.x = A.x + (A.w + B.w) / 2 + 6; fitX(B);                        // правого — вплотную справа
     if ((A.w + B.w) / 2 + 6 - (B.x - A.x) > 0) B.y = A.y + B.h + 6;   // не влезли рядом — ниже соседа
+  }
+  // этап 10.3.1: облачко хозяйки в середине кухни; над плашкой итога миски, если она открыта
+  const hb = BUB.host;
+  if (hb.el && hb.until > now) {
+    const [hx, hy0] = sceneXY(CONFIG.say.hostAt[0], CONFIG.say.hostAt[1]);
+    const hw = hb.el.offsetWidth, hh = hb.el.offsetHeight, aTop = app.getBoundingClientRect().top;
+    let hy = Math.max(hy0, top + hh / 2);
+    const tc = $('#tripCard');
+    if (tc && !tc.hidden) hy = Math.max(top + hh / 2, Math.min(hy, tc.getBoundingClientRect().top - aTop - hh / 2 - 6));
+    hb.el.style.left = hx + 'px'; hb.el.style.top = hy + 'px';
+    const hTop = hy - hh / 2, hBot = hy + hh / 2;
+    for (const r of vis) {                                         // облачко питомца наезжает — выше хозяйки, а нет места — ниже
+      if (r.y + 4 <= hTop || r.y - r.h - 4 >= hBot || Math.abs(r.x - hx) >= (r.w + hw) / 2 + 4) continue;
+      const clash = y => vis.some(o => o !== r && Math.abs(o.x - r.x) < (o.w + r.w) / 2 + 4 && y > o.y - o.h - 4 && y - r.h < o.y + 4);
+      const up = hTop - 6;
+      r.y = up - r.h >= top && !clash(up) ? up : hBot + 6 + r.h;
+    }
   }
   for (const r of vis) { r.el.style.left = r.x + 'px'; r.el.style.top = r.y + 'px'; }
 }
