@@ -645,6 +645,14 @@ button:focus-visible{outline:3px solid var(--violet);outline-offset:2px}
 .pill.all{background:linear-gradient(#4BEA95,#12B866)}
 .pill.part{background:linear-gradient(#FFE27A,#FFB21F);color:#7A4200}
 .saylayer{position:absolute;inset:0;pointer-events:none;z-index:35;overflow:hidden}
+/* этап 11: прогулка от первого лица — улица поверх кухни, под облачками, плашкой миски и «Разнять» */
+.walkview{position:absolute;inset:0;z-index:30;overflow:hidden;background:#7DEBFF}
+.walkview[hidden]{display:none}
+.walkview svg{display:block;width:100%;height:100%}
+.walkview .wv-ol{stroke:#3A1A4A;stroke-width:1.6;stroke-linejoin:round}
+.walkview .wv-night{opacity:0}.walkview svg.eve .wv-night{opacity:1}.walkview svg.eve .wv-day{opacity:0}
+.walkview .wv-dusk{opacity:0;mix-blend-mode:multiply}.walkview svg.eve .wv-dusk{opacity:.42}
+.walkview .wv-glows{opacity:0}.walkview svg.eve .wv-glows{opacity:1}
 .bubble{position:absolute;max-width:236px;width:max-content;padding:6px 11px 7px;border-radius:15px;background:#fff;color:var(--ink);
   font-weight:900;font-size:19px;line-height:1.15;text-align:center;--bb:#FF7AC8;
   box-shadow:0 0 0 2.5px var(--bb),0 4px 0 rgba(90,20,110,.22),0 0 12px rgba(255,255,255,.7);
@@ -781,6 +789,7 @@ button:focus-visible{outline:3px solid var(--violet);outline-offset:2px}
   <!-- Кухня -->
   <div class="stage" id="stage">
     <svg id="scene" viewBox="0 60 400 470" preserveAspectRatio="xMidYMax meet" aria-label="Кухня"></svg>
+    <div class="walkview" id="walkView" hidden><svg id="wvSvg" viewBox="0 0 400 360" preserveAspectRatio="xMidYMax slice" aria-label="Прогулка"></svg></div>   <!-- этап 11: прогулка -->
     <div class="tripcard" id="tripCard" hidden></div>   <!-- этап 6.1: итог миски -->
     <button class="mousebtn" id="mouseBtn" hidden><svg viewBox="-24 -26 56 30" aria-hidden="true"><g transform="scale(-1 1) translate(-4 0)"></g></svg><b>Разнять!</b><i class="mt"><u id="mouseBar"></u></i></button>   <!-- этап 7 -->
   </div>
@@ -1875,7 +1884,8 @@ function buildGallery() {
 /* ===================== Эффекты ===================== */
 function appXY(cx, cy) { const r = app.getBoundingClientRect(); return [cx - r.left, cy - r.top]; }
 function sceneXY(x, y) { const p = scene.createSVGPoint(); p.x = x; p.y = y; const q = p.matrixTransform(scene.getScreenCTM()); return appXY(q.x, q.y); }
-function petHeadXY(id) { const sp = SPOTS[id][S.pets[id].spot]; return sceneXY(sp.x, sp.y + HEAD_Y[id] * sp.s); }
+function petHeadXY(id) { const w = S.pets[id].out && WV.headXY(id); if (w) return w;   // этап 11: гуляет — голова на улице
+  const sp = SPOTS[id][S.pets[id].spot]; return sceneXY(sp.x, sp.y + HEAD_Y[id] * sp.s); }
 function chipXY(id) { const r = chipEls[id].root.getBoundingClientRect(); return appXY(r.left + r.width / 2, r.top + 6); }
 
 function floatText(xy, text, kind = 'good') {
@@ -2116,6 +2126,7 @@ let lastT = performance.now();
 function frame(now) {
   const raw = Math.min(0.1, (now - lastT) / 1000); lastT = now;
   if (S.running && !S.paused && !S.over) update(raw * S.speed);
+  WV.tick(raw, S.running && !S.paused && !S.over && !S.fridge.open && !CALL.id);   // этап 11
   render(now);
   tickBubbles(now);
   boardTick(now);
@@ -2934,6 +2945,13 @@ const PHRASES = {
   catsHappy:    { host: ['Донуси мои котуси!', 'Котя, моя котя!'] },
   catHappy:     { host: ['Котя, моя котя!'] },                         // этап 10.3: Ростик съел с удовольствием
   morningJoy:   { host: ['Я когда вижу, что с утра всё съедено, я такая счастливая!'] },   // этап 10.3: раз в день
+  // этап 11: прогулка от первого лица (черновик Claude, Ольге проверить)
+  walkChat:       { alisa: ['Нюх-нюх… тут кто-то был!', 'Гуляем! Гуляем!', 'Ой, бабочка!', 'Это мой куст!', 'Хорошо-то как!', 'Можно я тут понюхаю?'] },
+  walkCats:       { donald: ['Я тут по делу.', 'Проверяю территорию.', 'Трава как трава.'], rostik: ['Ой, листик!', 'Тут мышами пахнет!', 'Мы тоже гуляем!'] },
+  walkWantPepper: { alisa: ['Перчик! Дай перчик!', 'Ну дай перчик!', 'Перчик-перчик-перчик!'] },
+  walkWantBag:    { alisa: ['Пакетик! Я знаю, он у тебя!', 'Ну да-а-ай пакетик!', 'Вкусняшку! Ну пожалуйста!'] },
+  walkWantHug:    { alisa: ['На ручки! Хочу на ручки!', 'Ну мам, ну пожа-а-алуйста!', 'Возьми меня на ручки!'] },
+  walkHost:       { host: ['Ай ты мои штанишки пушистые красивые!', 'Лиса, ну что ты хочешь?', 'Дома дам, дома!', 'Ну какая же ты хитрая!'] },
   refuse:       { host: ['Я кому тут готовила!'] },
   refuseRostik: { host: ['Ростя, ну ты и жопа.', 'Я кому тут готовила!'] },
   refuseAlisa:  { host: ['Лиса, ты дура.', 'Я кому тут готовила!'] },
@@ -3594,6 +3612,7 @@ function walkGo() {
   Object.assign(W, { st: 'out', until: S.time + CONFIG.walk.duration });
   S.stats.walks++;
   for (const id of ['alisa', ...W.cats]) { S.pets[id].out = true; syncSpot(id); }
+  WV.start(W.cats);                                   // этап 11: улица вместо кухни
   say('alisa', 'walking', {}, 2);
   if (W.cats.length) {
     S.stats.catsWalk++;
@@ -3618,6 +3637,446 @@ function walkPuddle() {
   setTimeout(() => say('host', 'puddleHost', {}, 2), 800);
   S.boardQ.puddles += CONFIG.walk.puddles;
 }
+
+/* =====================================================================
+   ЭТАП 11: ПРОГУЛКА ОТ ПЕРВОГО ЛИЦА
+   Пока Алиса гуляет (S.walk.st === 'out'), кухню закрывает улица (#walkView):
+   мы держим поводок (рука снизу), Алиса трусит впереди, раз в 6–9 с делает «зайчика» —
+   встаёт на задние лапы и гребёт передними к себе (так она просит, когда очень хочет).
+   Перспектива: глубина z, y = HOR + CAMH / z, x = 200 + X / z; мир едет на нас со скоростью v.
+   Только красота: на очки и довольство не влияет. Реплики — из банка (walkChat, walkWant*, walkHost, walkCats).
+   ===================================================================== */
+CONFIG.walkView = {
+  v: 1.7,                     // скорость мира на ходу
+  enter: 1.4, close: .7,      // двери «Гулять!» / «Домой!» (реальные секунды)
+  firstMin: 4, firstMax: 6,   // первый зайчик
+  bunnyMin: 6, bunnyMax: 9,   // следующие
+  paw: 2.4,                   // сколько длится зайчик
+  chatMin: 7, chatMax: 11,    // фоновая болтовня на прогулке
+  hostChance: .55,            // хозяйка отвечает на зайчика
+  catChat: .35,               // вместо Алисы болтает кот (если коты гуляют)
+  minLeft: 4,                 // зайчик не начинается, если до конца прогулки меньше 4 игровых секунд
+};
+const WV = (() => {
+  const C = CONFIG.walkView;
+  const HOR = 128, CAMH = 89, ROAD = 62, Z_NEAR = CAMH / (360 - HOR), Z_DOG = .55;
+  const yOf = z => HOR + CAMH / z, xOf = (X, z) => 200 + X / z;
+  const lerp = (a, b, t) => a + (b - a) * t, cl01 = v => Math.min(1, Math.max(0, v));
+  const ease = t => t * t * (3 - 2 * t), rnd = (a, b) => a + Math.random() * (b - a);
+  const pick = a => a[Math.floor(Math.random() * a.length)];
+  const NSV = 'http://www.w3.org/2000/svg';
+  const V = matchMedia('(prefers-reduced-motion: reduce)').matches ? .8 : C.v;
+  const DUR = { stop: .45, turn: .32, turnback: .32 };
+
+  /* ---------- Алиса сзади (ноги на y = 0) ---------- */
+  function alisaBack() {
+    const ear = s => `<g transform="scale(${s} 1)"><g class="wvBEar">
+        <path class="pl" fill="url(#gHairA)" d="${tufts(-23, -138, 8, 15, 14, .2)}" transform="rotate(-34 -23 -138)"/>
+        <ellipse class="pl" fill="url(#wvSkinB)" cx="-22" cy="-137" rx="7" ry="14.5" transform="rotate(-34 -22 -137)"/></g></g>`;
+    const leg = s => `<g transform="scale(${s} 1)"><g class="wvBLeg">
+        <path class="pl" fill="url(#gSkinA)" d="M-21 -52C-25 -34 -23 -16 -20 -6L-9 -6C-8 -18 -7 -34 -5 -48Z"/>
+        <path class="pl" fill="url(#gHairA)" d="${tufts(-15, -14, 7, 9, 11, .45)}"/>
+        <ellipse class="pl" fill="url(#gSkinA)" cx="-15" cy="-3" rx="7" ry="3.8"/></g></g>`;
+    return `
+      <ellipse class="pl" fill="url(#gSkinA)" cx="-7" cy="-5" rx="5" ry="3.4"/>
+      <ellipse class="pl" fill="url(#gSkinA)" cx="7" cy="-5" rx="5" ry="3.4"/>
+      <g data-k="bHead">
+        ${ear(1)}${ear(-1)}
+        <circle class="pl" fill="url(#wvSkinB)" cx="0" cy="-114" r="17"/>
+        <ellipse class="pl" fill="url(#gSkinA)" cx="0" cy="-96" rx="11" ry="9"/>
+        <path class="pl" fill="url(#gHairA)" d="${tufts(0, -108, 8, 11, 10, .35)}"/>
+        <path class="pl" fill="url(#gHairA)" d="${tufts(0, -124, 12, 8, 13, .32)}"/>
+        <path class="pl" fill="#8A3CFF" d="M-11 -97Q0 -91 11 -97L11 -91Q0 -85 -11 -91Z"/>
+        <circle class="pl" fill="#FFC21F" cx="0" cy="-95" r="3"/>
+      </g>
+      ${leg(1)}${leg(-1)}
+      <g data-k="bBody">
+        <ellipse class="pl" fill="url(#gSkinA)" cx="0" cy="-60" rx="24" ry="27"/>
+        <ellipse fill="#FFF0EA" opacity=".55" cx="-9" cy="-72" rx="8" ry="6"/>
+        <ellipse fill="#C98587" opacity=".45" cx="10" cy="-56" rx="6" ry="4.5"/>
+        <ellipse fill="#C98587" opacity=".45" cx="-12" cy="-48" rx="4" ry="3"/>
+        <ellipse fill="#C98587" opacity=".4" cx="4" cy="-76" rx="3" ry="2.4"/>
+      </g>
+      <g data-k="bTail">
+        <path fill="none" stroke="#40241B" stroke-width="7.4" stroke-linecap="round" d="M0 -78C4 -94 18 -104 14 -122"/>
+        <path fill="none" stroke="#EDB1A9" stroke-width="3.8" stroke-linecap="round" d="M0 -78C4 -94 18 -104 14 -122"/>
+        <path class="pl" fill="url(#gHairA)" d="${tufts(13, -128, 8, 15, 13, .4)}"/>
+        <path class="hs" stroke="#E3C286" stroke-width="1.4" d="M11 -122Q14 -132 12 -140M16 -124Q19 -130 17 -136"/>
+      </g>`;
+  }
+
+  /* ---------- Алиса лицом к нам, на задних лапах (ноги на y = 0) ---------- */
+  function alisaFront() {
+    const ear = s => `<g transform="scale(${s} 1)"><g class="wvFEar">
+        <path class="pl" fill="url(#gHairA)" d="${tufts(-29, -139, 9, 18, 15, .4)}" transform="rotate(-35 -29 -139)"/>
+        <path class="pl" fill="url(#gSkinA)" d="M-10 -120C-18 -138 -30 -158 -40 -152C-48 -146 -38 -126 -22 -112Z"/>
+        <path fill="#F29AAA" d="M-13 -121C-19 -135 -29 -150 -37 -147C-42 -142 -35 -128 -23 -116Z"/></g></g>`;
+    const arm = s => `<g transform="translate(${-12 * s} -80) scale(${s} 1)"><g class="wvFArm">
+        <path class="pl" fill="url(#gSkinA)" d="M-4.6 0L-4.6 20A4.6 4.6 0 0 0 4.6 20L4.6 0Z"/>
+        <path class="pl" fill="url(#gHairA)" d="${tufts(0, 22, 6, 5, 9, .45)}"/></g></g>`;
+    const eye = x => `<ellipse fill="#2A0F1C" cx="${x}" cy="-113" rx="4.6" ry="5.3"/>
+        <circle fill="#fff" cx="${x + 1.5}" cy="-115.2" r="1.7"/><circle fill="#fff" cx="${x - 1.4}" cy="-110.8" r=".8"/>`;
+    return `
+      <g data-k="fTail">
+        <path fill="none" stroke="#40241B" stroke-width="7" stroke-linecap="round" d="M8 -40C26 -48 32 -62 30 -80"/>
+        <path fill="none" stroke="#EDB1A9" stroke-width="3.4" stroke-linecap="round" d="M8 -40C26 -48 32 -62 30 -80"/>
+        <path class="pl" fill="url(#gHairA)" d="${tufts(30, -86, 7, 13, 12, .4)}"/>
+      </g>
+      <ellipse class="pl" fill="url(#gSkinA)" cx="-13" cy="-24" rx="11" ry="13"/>
+      <ellipse class="pl" fill="url(#gSkinA)" cx="13" cy="-24" rx="11" ry="13"/>
+      <path class="pl" fill="url(#gHairA)" d="${tufts(-13, -11, 8, 9, 11, .45)}"/>
+      <path class="pl" fill="url(#gHairA)" d="${tufts(13, -11, 8, 9, 11, .45)}"/>
+      <ellipse class="pl" fill="url(#gSkinA)" cx="-13" cy="-3" rx="8" ry="4"/>
+      <ellipse class="pl" fill="url(#gSkinA)" cx="13" cy="-3" rx="8" ry="4"/>
+      <ellipse class="pl" fill="url(#gSkinA)" cx="0" cy="-60" rx="18" ry="30"/>
+      <ellipse fill="#FFE6DE" opacity=".8" cx="0" cy="-55" rx="10" ry="18"/>
+      <ellipse fill="#C98587" opacity=".4" cx="10" cy="-44" rx="3.6" ry="2.8"/>
+      <path class="pl" fill="#8A3CFF" d="M-11 -93Q0 -87 11 -93L11 -88Q0 -82 -11 -88Z"/>
+      <circle class="pl" fill="#FFC21F" cx="0" cy="-84.5" r="3"/>
+      <g data-k="fHead">
+        ${ear(1)}${ear(-1)}
+        <circle class="pl" fill="url(#gSkinA)" cx="0" cy="-112" r="19"/>
+        <ellipse class="pl" fill="#FCD8CF" cx="0" cy="-102" rx="10" ry="7.5"/>
+        <ellipse fill="#FF8FB8" opacity=".55" cx="-11.5" cy="-104" rx="3.6" ry="2"/>
+        <ellipse fill="#FF8FB8" opacity=".55" cx="11.5" cy="-104" rx="3.6" ry="2"/>
+        ${eye(-8)}${eye(8)}
+        <path class="hs" stroke="#40241B" stroke-width="1.5" d="M-12.5 -121Q-8 -122.5 -4 -125M12.5 -121Q8 -122.5 4 -125"/>
+        <ellipse fill="#5A2A2E" cx="0" cy="-104.5" rx="3.4" ry="2.4"/><ellipse fill="#fff" opacity=".6" cx="-1" cy="-105.4" rx="1.1" ry=".6"/>
+        <path class="pl" fill="#FF6F9A" d="M-3 -99Q0 -91 3 -99Z"/>
+        <path class="hs" stroke="#40241B" stroke-width="1.5" d="M-5.5 -100Q-2.5 -97.5 0 -100Q2.5 -97.5 5.5 -100"/>
+        <path class="pl" fill="url(#gHairA)" d="${tufts(0, -129, 14, 7.5, 14, .55)}"/>
+        <path class="pl" fill="url(#gHairA)" d="M-7 -130C-9 -122 -4 -118 0 -115C4 -118 9 -122 7 -130Z"/>
+      </g>
+      ${arm(1)}${arm(-1)}
+      <path data-k="fSwish" class="hs" stroke="#FFFFFF" stroke-width="2.4" opacity="0" d="M-40 -96Q-46 -86 -40 -76M-46 -100Q-54 -86 -46 -72M40 -96Q46 -86 40 -76M46 -100Q54 -86 46 -72"/>`;
+  }
+
+  /* ---------- Коты сзади ---------- */
+  function catBack(o) {
+    const ear = s => `<path class="pl" fill="${o.body}" d="M${-13 * s} -64L${-12 * s} -82L${-2 * s} -71Z"/>` +
+      (o.lynx ? `<path class="hs" stroke="${o.dark}" stroke-width="1.6" d="M${-12 * s} -82L${-12.5 * s} -88"/>` : '');
+    const leg = s => `<g class="wvCLeg"><ellipse class="pl" fill="${o.body}" cx="${-11 * s}" cy="-8" rx="7" ry="8.5"/>
+        <ellipse class="pl" fill="${o.paw}" cx="${-11 * s}" cy="-1.5" rx="6" ry="3"/></g>`;
+    return `<ellipse fill="rgba(60,20,70,.22)" cx="0" cy="0" rx="22" ry="5"/>
+      <g class="wvCBob">
+        ${ear(1)}${ear(-1)}
+        ${o.mane ? `<path class="pl" fill="${o.body}" d="${fluff(0, -54, 20, 14, 12, .22)}"/>` : ''}
+        <circle class="pl" fill="${o.body}" cx="0" cy="-58" r="15"/>
+        <path class="hs" stroke="${o.dark}" stroke-width="2.2" d="M-6 -71Q-5 -64 -6 -58M0 -73L0 -61M6 -71Q5 -64 6 -58"/>
+        ${leg(1)}${leg(-1)}
+        <ellipse class="pl" fill="${o.body}" cx="0" cy="-30" rx="${o.w}" ry="24"/>
+        <path class="hs" stroke="${o.dark}" stroke-width="2.6" d="M-14 -44Q0 -38 14 -44M-16 -32Q0 -26 16 -32M-14 -20Q0 -15 14 -20"/>
+        <g class="wvCTail">
+          <path fill="none" stroke="#40241B" stroke-width="${o.tail + 3.4}" stroke-linecap="round" d="M0 -14C14 -24 18 -46 8 -64"/>
+          <path fill="none" stroke="${o.body}" stroke-width="${o.tail}" stroke-linecap="round" d="M0 -14C14 -24 18 -46 8 -64"/>
+          <path fill="none" stroke="${o.dark}" stroke-width="${o.tail}" stroke-dasharray="3.5 6" d="M0 -14C14 -24 18 -46 8 -64"/>
+        </g>
+      </g>`;
+  }
+
+  /* ---------- Декорации (основание на y = 0) ---------- */
+  const ART = {
+    lamp: `<ellipse fill="rgba(60,20,70,.2)" cx="0" cy="0" rx="12" ry="3.5"/>
+      <path class="wv-ol" fill="url(#wvPost)" d="M-3.2 0L-3.2 -98L3.2 -98L3.2 0Z"/>
+      <path class="wv-ol" fill="#A64DFF" d="M-8 0L-6 -10L6 -10L8 0Z"/>
+      <path class="wv-ol" fill="#A64DFF" d="M-7 -97L7 -97L5 -102L-5 -102Z"/>
+      <circle class="wv-ol" fill="#FFF7C8" cx="0" cy="-110" r="9"/>
+      <ellipse fill="#fff" opacity=".7" cx="-3" cy="-113" rx="2.6" ry="1.8"/>
+      <path class="wv-ol" fill="#A64DFF" d="M-6 -118Q0 -124 6 -118L4 -116Q0 -119 -4 -116Z"/>`,
+    bush: `<ellipse fill="rgba(60,20,70,.2)" cx="0" cy="0" rx="26" ry="5"/>
+      <path class="wv-ol" fill="url(#wvBush)" d="${fluff(0, -18, 26, 18, 9, .22)}"/>
+      <ellipse fill="#fff" opacity=".45" cx="-9" cy="-28" rx="8" ry="4"/>
+      <circle fill="#FF2E93" cx="10" cy="-24" r="3"/><circle fill="#FFC21F" cx="-4" cy="-14" r="2.6"/><circle fill="#fff" cx="16" cy="-12" r="2.2"/>`,
+    tree: `<ellipse fill="rgba(60,20,70,.2)" cx="0" cy="0" rx="22" ry="5"/>
+      <path class="wv-ol" fill="#B8733E" d="M-5 0L-4 -56L4 -56L5 0Z"/>
+      <path class="wv-ol" fill="url(#wvTree)" d="${fluff(0, -84, 34, 32, 11, .18)}"/>
+      <ellipse fill="#fff" opacity=".4" cx="-12" cy="-100" rx="11" ry="6"/>
+      <circle class="wv-ol" fill="#FF2448" cx="14" cy="-80" r="3.6"/><circle class="wv-ol" fill="#FF2448" cx="-14" cy="-70" r="3.6"/><circle class="wv-ol" fill="#FF2448" cx="4" cy="-104" r="3.6"/>`,
+    flowers: `<path stroke="#0C8F4E" stroke-width="2" d="M-8 0L-9 -12M0 0L1 -16M8 0L9 -11"/>
+      <circle class="wv-ol" fill="#FF2E93" cx="-9" cy="-14" r="4.4"/><circle class="wv-ol" fill="#FFC21F" cx="1" cy="-18" r="4.4"/><circle class="wv-ol" fill="#19C8FF" cx="9" cy="-13" r="4.4"/>
+      <circle fill="#fff" cx="-9" cy="-14" r="1.4"/><circle fill="#fff" cx="1" cy="-18" r="1.4"/><circle fill="#fff" cx="9" cy="-13" r="1.4"/>`,
+  };
+  /* чего хочет Алиса: иконка в облачке у головы и ключ реплики в банке */
+  const WANT = {
+    pepper: { key: 'walkWantPepper', icon: `<path class="pl" fill="#FF2448" d="M0 -6C-8 -14 -14 -4 -10 4C-7 10 -2 12 0 10C2 12 7 10 10 4C14 -4 8 -14 0 -6Z"/>
+      <ellipse fill="#fff" opacity=".6" cx="-6" cy="-3" rx="2" ry="3.4"/>
+      <path fill="none" stroke="#1FB24A" stroke-width="2.6" stroke-linecap="round" d="M0 -6Q1 -11 5 -12"/>` },
+    bag: { key: 'walkWantBag', icon: `<path class="pl" fill="#A64DFF" d="M-9 -10L9 -10L11 11L-11 11Z"/>
+      <path class="pl" fill="#C08BFF" d="M-9 -10L-6 -13L-3 -10L0 -13L3 -10L6 -13L9 -10Z"/>
+      <ellipse fill="#fff" cx="0" cy="4" rx="3.4" ry="2.6"/><circle fill="#fff" cx="-3.6" cy="-1" r="1.4"/><circle fill="#fff" cx="0" cy="-2.6" r="1.4"/><circle fill="#fff" cx="3.6" cy="-1" r="1.4"/>` },
+    hug: { key: 'walkWantHug', icon: `<path class="pl" fill="#FF2E93" d="M0 10C-14 0 -13 -12 -6 -12C-3 -12 -1 -10 0 -8C1 -10 3 -12 6 -12C13 -12 14 0 0 10Z"/>
+      <ellipse fill="#fff" opacity=".6" cx="-6" cy="-6" rx="2.6" ry="1.8"/>` },
+  };
+
+  let view = null, svg = null, E = {}, bands = [], objs = [], st = null;
+  const BAND = .6, NB = 28, SPAN = 16.8;
+  const q = k => svg.querySelector(`[data-k="${k}"]`);
+
+  function build() {
+    view = $('#walkView'); svg = $('#wvSvg');
+    const cloud = (x, y, k) => `<g transform="translate(${x} ${y}) scale(${k})"><path fill="#fff" opacity=".92" d="${fluff(0, 0, 26, 10, 9, .35)}"/></g>`;
+    const spark = (x, y, r) => `<path fill="#FFF6C8" d="M${x} ${y - r}Q${x} ${y} ${x + r} ${y}Q${x} ${y} ${x} ${y + r}Q${x} ${y} ${x - r} ${y}Q${x} ${y} ${x} ${y - r}Z"/>`;
+    svg.innerHTML = `
+<defs>
+  <radialGradient id="wvSkinB" cx=".5" cy=".35" r=".8"><stop offset="0" stop-color="#F2BDB4"/><stop offset="1" stop-color="#C9898A"/></radialGradient>
+  <linearGradient id="wvSkyM" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7DEBFF"/><stop offset=".45" stop-color="#C9F6FF"/><stop offset=".78" stop-color="#FFD1EE"/><stop offset="1" stop-color="#FFE9B0"/></linearGradient>
+  <linearGradient id="wvSkyE" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#22074F"/><stop offset=".45" stop-color="#6A22C8"/><stop offset=".8" stop-color="#E04FC0"/><stop offset="1" stop-color="#FF9ED0"/></linearGradient>
+  <radialGradient id="wvSun"><stop offset="0" stop-color="#FFFBD6"/><stop offset=".6" stop-color="#FFE25A"/><stop offset="1" stop-color="#FFC21F"/></radialGradient>
+  <radialGradient id="wvGlow"><stop offset="0" stop-color="#FFF6B0" stop-opacity=".95"/><stop offset=".4" stop-color="#FFC9F0" stop-opacity=".5"/><stop offset="1" stop-color="#FF9ED0" stop-opacity="0"/></radialGradient>
+  <radialGradient id="wvBush" cx=".35" cy=".3" r=".9"><stop offset="0" stop-color="#9DFFE6"/><stop offset=".5" stop-color="#18DDB8"/><stop offset="1" stop-color="#0A9C82"/></radialGradient>
+  <radialGradient id="wvTree" cx=".35" cy=".3" r=".9"><stop offset="0" stop-color="#B4FFC4"/><stop offset=".5" stop-color="#1FD27A"/><stop offset="1" stop-color="#0C8F4E"/></radialGradient>
+  <linearGradient id="wvPost" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#FF9ED0"/><stop offset=".4" stop-color="#FF2E93"/><stop offset="1" stop-color="#A00A4E"/></linearGradient>
+  <linearGradient id="wvDoor" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FF9ED0"/><stop offset="1" stop-color="#E0207F"/></linearGradient>
+  <linearGradient id="wvSleeve" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#C08BFF"/><stop offset="1" stop-color="#6A1FE0"/></linearGradient>
+</defs>
+<rect width="400" height="360" fill="url(#wvSkyM)"/>
+<rect class="wv-night" width="400" height="360" fill="url(#wvSkyE)"/>
+<g class="wv-night">${spark(40, 30, 4)}${spark(120, 18, 3)}${spark(250, 40, 3.5)}${spark(350, 22, 4.5)}${spark(300, 70, 2.6)}${spark(80, 76, 2.6)}${spark(190, 60, 2.2)}</g>
+<g class="wv-day"><circle cx="322" cy="58" r="34" fill="#FFF3A0" opacity=".35"/><circle class="wv-ol" cx="322" cy="58" r="22" fill="url(#wvSun)"/><ellipse cx="315" cy="50" rx="7" ry="4" fill="#fff" opacity=".7"/></g>
+<g class="wv-night"><circle cx="322" cy="58" r="30" fill="#FFE9FF" opacity=".25"/><path class="wv-ol" fill="#FFF3C8" d="M330 38A21 21 0 1 0 338 74A16 16 0 1 1 330 38Z"/></g>
+<g data-k="clouds" class="wv-day">${cloud(60, 54, 1)}${cloud(200, 36, .8)}${cloud(380, 66, 1.1)}${cloud(500, 42, .9)}</g>
+<path fill="#C8B4FF" d="M0 128L0 104Q40 86 80 101Q120 116 160 97Q200 80 240 99Q290 118 330 95Q370 78 400 97L400 128Z"/>
+<path fill="#6FE3C8" d="M0 128L0 117Q60 102 120 116Q180 129 240 112Q300 97 360 114L400 109L400 128Z"/>
+<rect x="0" y="${HOR}" width="400" height="${360 - HOR}" fill="#2ACB92"/>
+<g data-k="ground"></g>
+<g data-k="objBack"></g>
+<g data-k="catD">${catBack({ body: '#F0A040', dark: '#B8661E', paw: '#FFE2B0', w: 21, tail: 9, mane: true, lynx: true })}</g>
+<g data-k="catR">${catBack({ body: '#9A6A44', dark: '#5E3A22', paw: '#D9B48E', w: 17, tail: 6 })}</g>
+<g data-k="objFront"></g>
+<g data-k="dog">
+  <ellipse fill="rgba(60,20,70,.24)" cx="0" cy="0" rx="30" ry="7"/>
+  <g data-k="turn"><g data-k="aBack">${alisaBack()}</g><g data-k="aFront" style="display:none"><g data-k="aFrontBody">${alisaFront()}</g></g></g>
+</g>
+<path data-k="leash" fill="none" stroke="#A00A4E" stroke-width="5" stroke-linecap="round"/>
+<path data-k="leashHi" fill="none" stroke="#FF5FB0" stroke-width="2.4" stroke-linecap="round"/>
+<g transform="translate(262 352)">
+  <path class="wv-ol" fill="url(#wvSleeve)" d="M8 30L-6 -2Q4 -16 26 -6L40 30Z"/>
+  <path class="pl" fill="#FFD6BC" d="M-20 -14Q-24 -26 -12 -30L2 -28Q12 -24 8 -12Q6 -2 -6 -2Q-16 -2 -20 -14Z"/>
+  <path class="hs" stroke="#C98A6E" stroke-width="1.4" d="M-14 -24Q-8 -22 -2 -24M-16 -18Q-10 -16 -3 -18"/>
+</g>
+<g data-k="want" style="display:none">
+  <circle fill="#fff" cx="-17" cy="22" r="3"/><circle fill="#fff" cx="-10" cy="15" r="4.5"/>
+  <circle fill="#fff" stroke="#8A3CFF" stroke-width="3" r="18"/>
+  <g data-k="wantIcon"></g>
+</g>
+<rect data-k="dusk" class="wv-dusk" width="400" height="360" fill="#5A28B0"/>
+<g data-k="glows" class="wv-glows"></g>
+<g data-k="doors">
+  <g data-k="doorL"><rect x="-4" y="-4" width="206" height="368" fill="url(#wvDoor)" stroke="#A00A4E" stroke-width="4"/>
+    <rect x="30" y="34" width="140" height="120" rx="14" fill="#FFE3F4" stroke="#A00A4E" stroke-width="3"/>
+    <rect x="30" y="190" width="140" height="130" rx="14" fill="none" stroke="#FFC1E3" stroke-width="3"/>
+    <circle cx="182" cy="200" r="8" fill="#FFC21F" stroke="#A00A4E" stroke-width="2.5"/></g>
+  <g data-k="doorR"><rect x="198" y="-4" width="206" height="368" fill="url(#wvDoor)" stroke="#A00A4E" stroke-width="4"/>
+    <rect x="230" y="34" width="140" height="120" rx="14" fill="#FFE3F4" stroke="#A00A4E" stroke-width="3"/>
+    <rect x="230" y="190" width="140" height="130" rx="14" fill="none" stroke="#FFC1E3" stroke-width="3"/>
+    <circle cx="218" cy="200" r="8" fill="#FFC21F" stroke="#A00A4E" stroke-width="2.5"/></g>
+  <text data-k="doorText" x="200" y="104" text-anchor="middle" font-family="Nunito, sans-serif" font-weight="900" font-size="34" fill="#FF2E93" stroke="#fff" stroke-width="6" paint-order="stroke">Гулять!</text>
+</g>`;
+    for (const k of ['ground', 'objBack', 'objFront', 'glows', 'clouds', 'catD', 'catR', 'dog', 'turn', 'aBack', 'aFront', 'aFrontBody',
+      'bHead', 'bBody', 'bTail', 'fTail', 'fHead', 'fSwish', 'leash', 'leashHi', 'want', 'wantIcon', 'doors', 'doorL', 'doorR', 'doorText']) E[k] = q(k);
+    E.bLegs = E.aBack.querySelectorAll('.wvBLeg'); E.bEars = E.aBack.querySelectorAll('.wvBEar');
+    E.fArms = E.aFront.querySelectorAll('.wvFArm'); E.fEars = E.aFront.querySelectorAll('.wvFEar');
+    E.cats = { donald: E.catD, rostik: E.catR };
+    // полосы газона, дорожки и бортика-леденца (пул, переиспользуется каждый кадр)
+    for (let m = NB; m >= 0; m--) {
+      const grass = document.createElementNS(NSV, 'rect'), path = document.createElementNS(NSV, 'polygon');
+      const cl = document.createElementNS(NSV, 'polygon'), cr = document.createElementNS(NSV, 'polygon');
+      grass.setAttribute('x', 0); grass.setAttribute('width', 400);
+      E.ground.append(grass, path, cl, cr); bands[m] = { grass, path, cl, cr };
+    }
+    // фонари парами + кусты, деревья и клумбы вперемешку
+    const add = (type, X, k) => {
+      const el = document.createElementNS(NSV, 'g'); el.innerHTML = ART[type];
+      const o = { type, X, k, el, wz: 0, z: 9, glow: null };
+      if (type === 'lamp') { o.glow = document.createElementNS(NSV, 'circle'); o.glow.setAttribute('fill', 'url(#wvGlow)'); E.glows.appendChild(o.glow); }
+      objs.push(o);
+    };
+    for (let i = 0; i < 7; i++) { add('lamp', -(ROAD + 16), .62); add('lamp', ROAD + 16, .62); }
+    const deco = ['bush', 'tree', 'bush', 'flowers', 'tree', 'bush'];
+    for (let i = 0; i < 24; i++) {
+      const type = deco[i % deco.length], side = i % 2 ? 1 : -1;
+      add(type, side * (type === 'tree' ? rnd(150, 210) : type === 'bush' ? rnd(96, 128) : rnd(80, 92)), type === 'tree' ? .8 : type === 'bush' ? .7 : .75);
+    }
+  }
+
+  const quad = (X0, X1, z0, z1) => `${xOf(X0, z0).toFixed(1)},${yOf(z0).toFixed(1)} ${xOf(X1, z0).toFixed(1)},${yOf(z0).toFixed(1)} ${xOf(X1, z1).toFixed(1)},${yOf(z1).toFixed(1)} ${xOf(X0, z1).toFixed(1)},${yOf(z1).toFixed(1)}`;
+  function drawGround(dist) {
+    const frac = dist % BAND, base = Math.floor(dist / BAND);
+    for (let m = 0; m <= NB; m++) {
+      const b = bands[m]; let z0 = m * BAND - frac; const z1 = z0 + BAND;
+      if (z1 <= Z_NEAR) { b.grass.setAttribute('height', 0); for (const p of [b.path, b.cl, b.cr]) p.setAttribute('points', ''); continue; }
+      z0 = Math.max(z0, Z_NEAR - .02);
+      const odd = (m + base) % 2, y1 = yOf(z1), y0 = yOf(z0);
+      b.grass.setAttribute('y', y1.toFixed(1)); b.grass.setAttribute('height', (y0 - y1 + .6).toFixed(1));
+      b.grass.setAttribute('fill', odd ? '#3FE0A6' : '#2ACB92');
+      b.path.setAttribute('points', quad(-ROAD, ROAD, z0, z1)); b.path.setAttribute('fill', odd ? '#FFE6F6' : '#FFD6EF');
+      b.cl.setAttribute('points', quad(-ROAD - 8, -ROAD, z0, z1)); b.cr.setAttribute('points', quad(ROAD, ROAD + 8, z0, z1));
+      const c = odd ? '#FF2E93' : '#FFFFFF'; b.cl.setAttribute('fill', c); b.cr.setAttribute('fill', c);
+    }
+  }
+  function drawObjs(dist) {
+    const back = [], front = [];
+    for (const o of objs) {
+      let z = o.wz - dist;
+      if (z < .3) { o.wz += SPAN; z += SPAN; if (o.type !== 'lamp') o.X *= rnd(.92, 1.08); }
+      const s = o.k / z, x = xOf(o.X, z), y = yOf(z), op = cl01((16.4 - z) / 2.4);
+      o.el.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${s.toFixed(3)})`);
+      o.el.setAttribute('opacity', op.toFixed(2)); o.z = z;
+      if (o.glow) { o.glow.setAttribute('cx', x.toFixed(1)); o.glow.setAttribute('cy', (y - 110 * s).toFixed(1)); o.glow.setAttribute('r', (30 * s).toFixed(1)); o.glow.setAttribute('opacity', op.toFixed(2)); }
+      (z < .8 ? front : back).push(o);
+    }
+    back.sort((a, b) => b.z - a.z).forEach(o => E.objBack.appendChild(o.el));
+    front.sort((a, b) => b.z - a.z).forEach(o => E.objFront.appendChild(o.el));
+  }
+
+  /* ---------- Состояние ---------- */
+  const setMode = m => { st.mode = m; st.mt = 0; };
+  const dogZ = () => st.mode === 'enter' ? lerp(.4, Z_DOG, ease(cl01(st.mt / C.enter))) : Z_DOG;
+  const dogX = () => 200 + 14 * Math.sin(st.dT * .55) + 5 * Math.sin(st.dT * 1.9);
+  const CAT = { donald: { side: -1, z: .8, k: .78 }, rostik: { side: 1, z: .86, k: .7 } };
+  const catXY = (id, i) => { const c = CAT[id]; return [xOf(c.side * (ROAD + 2) + Math.sin(st.dT * .7 + i * 2) * 4, c.z), yOf(c.z), c.k / c.z * .8]; };
+
+  function start(cats) {
+    if (!svg) build();
+    const eve = S.walk.slot === 'evening' || phaseIndex(dayT()) >= 2;
+    st = { mode: 'enter', mt: 0, dist: 0, v: V, ph: 0, dT: 0, T: 0, turn: 0, want: null, cats: new Set(cats || []),
+           next: rnd(C.firstMin, C.firstMax), chatAt: rnd(C.chatMin * .6, C.chatMax * .6), hostAt: 0 };
+    objs.forEach((o, i) => { o.wz = o.type === 'lamp' ? 1.2 + Math.floor(i / 2) * 2.4 : .5 + (i - 14) * .7; });
+    svg.classList.toggle('eve', eve);
+    E.want.style.display = 'none'; E.doorText.textContent = 'Гулять!';
+    for (const id of ['donald', 'rostik']) E.cats[id].style.display = st.cats.has(id) ? '' : 'none';
+    view.hidden = false;
+    tick(0, true);
+  }
+  function hide() { st = null; if (view) view.hidden = true; }
+
+  function startBunny() { setMode('stop'); st.want = pick(Object.keys(WANT)); }
+
+  // каждый кадр из frame(); live — идёт ли игровое время (холодильник, пауза и зов его останавливают)
+  function tick(raw, live) {
+    if (!st) return;
+    if (!S.running || !S.walk) { hide(); return; }
+    if (S.walk.st !== 'out' && st.mode !== 'home') { setMode('home'); E.doorText.textContent = 'Домой!'; E.want.style.display = 'none'; }
+    const dt = live ? raw : 0;
+    st.mt += dt; st.T += dt;
+    const M = st.mode, left = S.walk.until - S.time;
+    if (M === 'enter' && st.mt > C.enter) setMode('walk');
+    else if (M === 'walk' && dt) {
+      st.next -= dt; st.chatAt -= dt;
+      if (st.next <= 0 && left > C.minLeft) startBunny();
+      else if (st.chatAt <= 0) {
+        st.chatAt = rnd(C.chatMin, C.chatMax);
+        const cats = [...st.cats];
+        if (cats.length && Math.random() < C.catChat) say(pick(cats), 'walkCats', {}, 0); else say('alisa', 'walkChat', {}, 0);
+      }
+    }
+    else if (M === 'stop' && st.mt > DUR.stop) setMode('turn');
+    else if (M === 'turn' && st.mt > DUR.turn) {
+      setMode('paw');
+      const w = WANT[st.want]; E.wantIcon.innerHTML = w.icon; E.want.style.display = '';
+      say('alisa', w.key, {}, 3);                      // просьба важнее прошлой реплики
+    }
+    else if (M === 'paw' && st.mt > C.paw) {
+      setMode('turnback'); E.want.style.display = 'none';
+      if (Math.random() < C.hostChance) st.hostAt = .2;
+    }
+    else if (M === 'turnback' && st.mt > DUR.turnback) { setMode('walk'); st.next = rnd(C.bunnyMin, C.bunnyMax); st.chatAt = Math.max(st.chatAt, 3); }
+    else if (M === 'home' && st.mt > C.close + .2) { hide(); return; }
+    if (st.hostAt > 0 && (st.hostAt -= dt) <= 0) { st.hostAt = 0; say('host', 'walkHost', {}, 1); }
+
+    // скорость мира: идём / стоим
+    const vT = (st.mode === 'walk' || st.mode === 'enter' || st.mode === 'home') ? V : 0;
+    st.v += (vT - st.v) * Math.min(1, dt * (vT ? 2.2 : 7));
+    st.dist += st.v * dt;
+    const go = st.v / V;
+    st.ph += dt * 10 * go; st.dT += dt * go;
+    if (st.mode === 'turn') st.turn = ease(cl01(st.mt / DUR.turn));
+    else if (st.mode === 'turnback') st.turn = 1 - ease(cl01(st.mt / DUR.turnback));
+    else st.turn = st.mode === 'paw' ? 1 : 0;
+
+    drawGround(st.dist); drawObjs(st.dist); drawDog(go); drawCats(go);
+
+    // двери: открываются на входе, закрываются в конце
+    let open = 1;
+    if (st.mode === 'enter') open = ease(cl01((st.mt - .25) / .8));
+    else if (st.mode === 'home') open = 1 - ease(cl01(st.mt / C.close));
+    E.doorL.setAttribute('transform', `translate(${(-206 * open).toFixed(1)} 0)`);
+    E.doorR.setAttribute('transform', `translate(${(206 * open).toFixed(1)} 0)`);
+    E.doorText.setAttribute('opacity', cl01(1 - open * 3).toFixed(2));
+    E.doors.style.display = open >= .999 ? 'none' : '';
+    E.clouds.setAttribute('transform', `translate(${-((st.T * 5) % 520).toFixed(1)} 0)`);
+  }
+
+  function drawDog(go) {
+    const z = dogZ(), sc = Z_DOG / z, x = dogX(), y = yOf(z);
+    const lean = 6 * Math.cos(st.dT * .55) * .55 * go;   // поворачивает туда, куда тянет
+    E.dog.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${sc.toFixed(3)})`);
+    const front = st.turn >= .5, sx = Math.max(.06, Math.abs(Math.cos(st.turn * Math.PI)));
+    E.aBack.style.display = front ? 'none' : ''; E.aFront.style.display = front ? '' : 'none';
+    const hop = (st.mode === 'turn' || st.mode === 'turnback') ? Math.sin(cl01(st.mt / DUR.turn) * Math.PI) * 7 : 0;
+    E.turn.setAttribute('transform', `translate(0 ${(-hop).toFixed(1)}) rotate(${(front ? 0 : lean).toFixed(2)}) scale(${sx.toFixed(3)} 1)`);
+    let collarY;
+    if (!front) {
+      // рысь: задние лапы по очереди, попа качается, хвост виляет, уши хлопают
+      const s = Math.sin(st.ph), bob = Math.abs(s) * 2.6 * go;
+      E.bLegs[0].setAttribute('transform', `translate(0 ${(-Math.max(0, s) * 6 * go).toFixed(1)})`);
+      E.bLegs[1].setAttribute('transform', `translate(0 ${(-Math.max(0, -s) * 6 * go).toFixed(1)})`);
+      E.bBody.setAttribute('transform', `translate(0 ${(-bob).toFixed(1)}) rotate(${(s * 3 * go).toFixed(2)} 0 -60)`);
+      E.bTail.setAttribute('transform', `translate(0 ${(-bob).toFixed(1)}) rotate(${(Math.sin(st.T * 9) * 14).toFixed(1)} 0 -78)`);
+      E.bHead.setAttribute('transform', `translate(${(Math.sin(st.ph * .5) * 1.5 * go).toFixed(1)} ${(-bob * .6).toFixed(1)})`);
+      E.bEars.forEach((e, i) => e.setAttribute('transform', `rotate(${(Math.sin(st.ph + i) * 5 * go).toFixed(1)} -12 -124)`));
+      collarY = -95 - bob * .6;
+    } else {
+      // встала на задние лапы и гребёт передними к себе, обеими сразу
+      const t = st.mt, inPaw = st.mode === 'paw';
+      const rise = inPaw ? ease(cl01(t / .25)) * (1 - ease(cl01((t - C.paw + .3) / .3))) : 0;
+      let ang, swish = 0, bob = 0;
+      if (inPaw && t > .25 && t < C.paw - .3) {
+        const u = ((t - .25) * 4.2) % 1;                         // ~4 гребка в секунду
+        ang = u < .35 ? lerp(118, -22, ease(u / .35)) : lerp(-22, 118, ease((u - .35) / .65));
+        swish = u < .35 ? Math.sin(u / .35 * Math.PI) : 0;
+        bob = Math.sin(u * Math.PI * 2) * 1.6;
+      } else ang = lerp(10, 118, rise * .5);
+      E.aFrontBody.setAttribute('transform', `translate(0 ${(bob - rise * 4).toFixed(1)}) scale(1 ${(.84 + .16 * rise).toFixed(3)})`);
+      E.fArms.forEach(a => a.setAttribute('transform', `rotate(${ang.toFixed(1)}) scale(1 ${(1 - .18 * cl01((ang - 40) / 80)).toFixed(3)})`));
+      E.fSwish.setAttribute('opacity', (swish * .9).toFixed(2));
+      E.fTail.setAttribute('transform', `rotate(${(Math.sin(st.T * 18) * 16).toFixed(1)} 8 -40)`);
+      E.fHead.setAttribute('transform', `rotate(${(Math.sin(st.T * 3) * 4).toFixed(1)} 0 -100)`);
+      E.fEars.forEach(e => e.setAttribute('transform', `rotate(${(Math.sin(st.T * 14) * 3).toFixed(1)} -12 -122)`));
+      collarY = -86 * (.84 + .16 * rise) + bob - rise * 4;
+      E.want.setAttribute('transform', `translate(${(x + 50 * sc).toFixed(1)} ${(y - 158 * sc).toFixed(1)}) scale(${(cl01(t / .2) * (1 + .06 * Math.sin(st.T * 8))).toFixed(3)})`);
+    }
+    // поводок от нашей руки к ошейнику: на ходу натянут, на остановке провисает
+    const hx = 250, hy = 326, cx = x, cy = y + (collarY - hop) * sc;
+    const sag = lerp(34, 6, go), mx = (hx + cx) / 2 + 8, my = (hy + cy) / 2 + sag;
+    const d = `M${hx} ${hy}Q${mx.toFixed(1)} ${my.toFixed(1)} ${cx.toFixed(1)} ${cy.toFixed(1)}`;
+    E.leash.setAttribute('d', d); E.leashHi.setAttribute('d', d);
+  }
+  function drawCats(go) {
+    ['donald', 'rostik'].forEach((id, i) => {
+      if (!st.cats.has(id)) return;
+      const c = E.cats[id], [x, y, k] = catXY(id, i), s = Math.sin(st.ph * 1.15 + i * 1.7);
+      c.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${k.toFixed(3)})`);
+      c.querySelector('.wvCBob').setAttribute('transform', `translate(0 ${(-Math.abs(s) * 2 * go).toFixed(1)})`);
+      c.querySelectorAll('.wvCLeg').forEach((l, j) => l.setAttribute('transform', `translate(0 ${(-Math.max(0, j ? -s : s) * 5 * go).toFixed(1)})`));
+      c.querySelector('.wvCTail').setAttribute('transform', `rotate(${(Math.sin(st.T * 2.4 + i) * 8).toFixed(1)} 0 -14)`);
+    });
+  }
+
+  // где голова гуляющего питомца на экране (для облачков реплик); null — его на улице нет
+  function headXY(id) {
+    if (!st || st.mode === 'home' || view.hidden) return null;
+    let x, y;
+    if (id === 'alisa') { const z = dogZ(), sc = Z_DOG / z; x = dogX(); y = yOf(z) - (st.turn >= .5 ? 150 : 140) * sc; }
+    else if (st.cats.has(id)) { const [cx, cy, k] = catXY(id, id === 'donald' ? 0 : 1); x = cx; y = cy - 86 * k; }
+    else return null;
+    const m = svg.getScreenCTM(); if (!m) return null;
+    const p = svg.createSVGPoint(); p.x = x; p.y = y; const r = p.matrixTransform(m);
+    return appXY(r.x, r.y);
+  }
+
+  return { start, tick, headXY, bunny: () => st && st.mode === 'walk' && startBunny(), get on() { return !!st; }, get state() { return st; } };
+})();
 
 /* ---------- Рыбки: банка корма с верхнего ряда до нижнего ---------- */
 function fishStart() {
@@ -4453,6 +4912,7 @@ const SND = (() => {
     chainGot: 'joy', fishFed: 'joy', morning: 'ask', hungry: 'ask', veryHungry: 'grumble', offended: 'grumble', jealous: 'grumble',
     meh: 'grumble', porridge: 'grumble', matchSnort: 'grumble', puddle: 'grumble', fishSad: 'grumble', replyCall: 'grumble',
     mouse: 'joy', cascade: 'joy',
+    walkChat: 'joy', walkCats: 'joy', walkWantPepper: 'ask', walkWantBag: 'ask', walkWantHug: 'ask',   // этап 11
   };
   function petKind(who, key) {
     if (key === 'mouseSaved') return who === 'rostik' ? 'joy' : 'grumble';
@@ -4600,7 +5060,7 @@ refreshInstall();
   addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
   if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});   // сохранение не стирать
 })();
-window.__game = { S, CONFIG, SND, startDay, endDay, openFridge, closeFridge, askFridge, callDone, CALL, toggleItem, repeatBowl, startCooking, labelFor,
+window.__game = { WV, S, CONFIG, SND, startDay, endDay, openFridge, closeFridge, askFridge, callDone, CALL, toggleItem, repeatBowl, startCooking, labelFor,
   noveltyOf, suitability, shareFor, evalBowl, serveBowl, update, tickDay, absHour, say, phrase, PHRASES, BUB, complaint,
   togglePinch, feedBigAll, absT, stockN, capricious, TREAT,
   loadSave, clearSave, spoilsTonight,
